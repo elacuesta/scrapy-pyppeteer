@@ -1,0 +1,5 @@
+*.pyc
+.~lock*
+.DS_Store
+.mypy_cache/
+*.egg-info/
