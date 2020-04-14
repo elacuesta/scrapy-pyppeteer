@@ -1,5 +1,6 @@
 import asyncio
 from contextlib import suppress
+from functools import partial
 from typing import Coroutine, Optional
 
 import pyppeteer
@@ -19,11 +20,22 @@ def _force_deferred(coro: Coroutine) -> Deferred:
     return dfd
 
 
+async def _set_request_headers(
+    request: pyppeteer.network_manager.Request, scrapy_request: Request
+) -> None:
+    headers = {
+        key.decode("utf-8"): value[0].decode("utf-8")
+        for key, value in scrapy_request.headers.items()
+    }
+    await request.continue_(overrides={"headers": headers})
+
+
 class PageAction:
     def __init__(self, method: str, *args, **kwargs) -> None:
         self.method = method
         self.args = args
         self.kwargs = kwargs
+        # self.result: Optional[Any]
 
 
 class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
@@ -42,6 +54,8 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             self.browser = await pyppeteer.launch()
 
         page = await self.browser.newPage()
+        await page.setRequestInterception(True)
+        page.on("request", partial(_set_request_headers, scrapy_request=request))
         response = await page.goto(request.url)
 
         page_actions = request.meta["pyppeteer"].get("page_actions") or []
