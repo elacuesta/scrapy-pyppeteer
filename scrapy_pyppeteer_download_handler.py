@@ -50,15 +50,16 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             result = await asyncio.gather(
                 page.waitForNavigation(), method(*action.args, **action.kwargs),
             )
-            response = result[0]
+            response = next(filter(None, result))
 
         request.meta["pyppeteer"].update({"page": page, "response": response})
 
-        respcls = responsetypes.from_args(headers=response.headers, url=response.url)
+        body = (await response.text()).encode("utf8")
+        respcls = responsetypes.from_args(headers=response.headers, url=response.url, body=body)
         return respcls(
             url=response.url,
             status=response.status,
             headers=response.headers,
-            body=(await response.text()).encode("utf8"),
+            body=body,
             request=request,
         )
