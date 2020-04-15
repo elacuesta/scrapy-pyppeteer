@@ -75,7 +75,48 @@ class AwesomeSpider(scrapy.Spider):
 
 ## Page coroutines
 
-WIP
+In addition to `pyppeteer_enable`, `pyppeteer_page_coroutines` could be supplied to request
+certain actions to be performed before returning the final `Response` to the callback. This should
+be an iterable of:
+
+* `scrapy_pyppeteer.page.PageCoroutine(method: str, *args, **kwargs)`:
+
+    _Represents a coroutine to be awaited on a Pyppeteer page,
+    such as "click", "screenshot", "evaluate", etc._
+
+    For instance,
+
+    ```python
+PageCoroutine("screenshot", options={"path": "quotes.png", "fullPage": True})
+    ```
+
+    produces the same effect as:
+    ```python
+# 'page' is a pyppeteer.page.Page object
+await page.screenshot(options={"path": "quotes.png", "fullPage": True})
+    ```
+
+* `scrapy_pyppeteer.page.NavigationPageCoroutine(method: str, *args, **kwargs)`:
+
+    _Subclass of PageCoroutine. It waits for a navigation event: use this when you know
+    a coroutine will trigger a navigation event, for instance when clicking on a link.
+    This forces a Page.waitForNavigation() call wrapped in asyncio.gather, as recommended in
+    [the Pyppeteer docs](https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.click)._
+
+    For instance,
+
+    ```python
+NavigationPageCoroutine("click", selector="a")
+    ```
+
+    produces the same effect as:
+    ```python
+# 'page' is a pyppeteer.page.Page object
+await asyncio.gather(
+    page.waitForNavigation(),
+    page.click(selector="a"),
+)
+    ```
 
 
 ## Examples
