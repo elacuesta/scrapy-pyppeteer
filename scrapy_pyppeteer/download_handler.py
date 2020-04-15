@@ -12,6 +12,8 @@ from scrapy.responsetypes import responsetypes
 from scrapy.settings import Settings
 from twisted.internet.defer import Deferred
 
+from .actions import PageAction, NavigationPageAction
+
 
 def _force_deferred(coro: Coroutine) -> Deferred:
     dfd = Deferred().addCallback(lambda f: f.result())
@@ -28,29 +30,6 @@ async def _set_request_headers(
         for key, value in scrapy_request.headers.items()
     }
     await request.continue_(overrides={"headers": headers})
-
-
-class PageAction:
-    """
-    Represents a coroutine to be awaited on a page,
-    such as "click", "screenshot" or "evaluate"
-    """
-
-    def __init__(self, method: str, *args, **kwargs) -> None:
-        self.method = method
-        self.args = args
-        self.kwargs = kwargs
-
-
-class NavigationPageAction(PageAction):
-    """
-    Same as PageAction, but it waits for a navigation event. Use this when you know
-    a coroutine will trigger a navigation event, for instance when clicking on a link.
-
-    This forces a Page.waitForNavigation() call wrapped in asyncio.gather, as recommended in
-    https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.click
-    """
-    pass
 
 
 class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
@@ -72,7 +51,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         if self.browser is None:
             self.browser = await pyppeteer.launch(options=self.launch_options)
 
-        page = await self.browser.newPage()
+        page = await self.browser.newPage()  # type: ignore
         if self.navigation_timeout is not None:
             page.setDefaultNavigationTimeout(self.navigation_timeout)
         await page.setRequestInterception(True)
