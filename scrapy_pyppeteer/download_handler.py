@@ -1,5 +1,4 @@
 import asyncio
-from contextlib import suppress
 from functools import partial
 from typing import Coroutine, Optional
 
@@ -45,9 +44,8 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             self.navigation_timeout = settings.getint("PYPPETEER_NAVIGATION_TIMEOUT")
 
     def download_request(self, request: Request, spider: Spider):
-        with suppress(KeyError):
-            if request.meta["pyppeteer"]["enable"]:
-                return _force_deferred(self._download_request(request, spider))
+        if request.meta.get("pyppeteer_enable"):
+            return _force_deferred(self._download_request(request, spider))
         return super().download_request(request, spider)
 
     async def _download_request(self, request: Request, spider: Spider) -> Response:
@@ -61,7 +59,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         page.on("request", partial(_set_request_headers, scrapy_request=request))
         response = await page.goto(request.url)
 
-        page_actions = request.meta["pyppeteer"].get("page_actions") or []
+        page_actions = request.meta.get("pyppeteer_page_actions") or []
         for action in page_actions:
             if isinstance(action, PageAction):
                 method = getattr(page, action.method)
