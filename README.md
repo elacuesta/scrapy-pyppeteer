@@ -81,3 +81,13 @@ WIP
 ## Examples
 
 WIP
+
+
+## Acknowledgements
+
+This project was inspired by:
+
+* https://github.com/scrapy/scrapy/pull/1455
+* https://github.com/michalmo/scrapy-browser
+* https://github.com/lopuhin/scrapy-pyppeteer
+* https://github.com/clemfromspace/scrapy-puppeteer
