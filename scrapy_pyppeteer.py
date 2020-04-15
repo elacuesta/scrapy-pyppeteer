@@ -31,11 +31,25 @@ async def _set_request_headers(
 
 
 class PageAction:
+    """
+    Represents an action to be executed on a page,
+    such as "click", "screenshot" or "hover"
+    """
+
     def __init__(self, method: str, *args, **kwargs) -> None:
         self.method = method
         self.args = args
         self.kwargs = kwargs
-        # self.result: Optional[Any]
+
+
+class NavigationPageAction(PageAction):
+    """
+    Same as PageAction, but it waits for a navigation event
+    (forces a Page.waitForNavigation() call wrapped in asyncio.gather)
+
+    See https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.waitForNavigation
+    """
+    pass
 
 
 class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
@@ -61,14 +75,18 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         page_actions = request.meta["pyppeteer"].get("page_actions") or []
         for action in page_actions:
             method = getattr(page, action.method)
-            result = await asyncio.gather(
-                page.waitForNavigation(), method(*action.args, **action.kwargs),
-            )
-            response = next(filter(None, result))
-
-        request.meta["pyppeteer"].update({"page": page, "response": response})
+            if isinstance(action, NavigationPageAction):
+                result = await asyncio.gather(
+                    page.waitForNavigation(), method(*action.args, **action.kwargs),
+                )
+                result = next(filter(None, result))
+            elif isinstance(action, PageAction):
+                result = await method(*action.args, **action.kwargs)
+            if isinstance(result, pyppeteer.network_manager.Response):
+                response = result
 
         body = (await response.text()).encode("utf8")
+        await page.close()
         respcls = responsetypes.from_args(headers=response.headers, url=response.url, body=body)
         return respcls(
             url=response.url,
