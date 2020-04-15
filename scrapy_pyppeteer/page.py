@@ -1,6 +1,6 @@
 class PageCoroutine:
     """
-    An object that *represents* a coroutine to be awaited on a Pyppeteer page,
+    Represents a coroutine to be awaited on a Pyppeteer page,
     such as "click", "screenshot" or "evaluate"
     """
 

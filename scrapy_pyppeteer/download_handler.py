@@ -60,17 +60,15 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         response = await page.goto(request.url)
 
         page_coroutines = request.meta.get("pyppeteer_page_coroutines") or []
-        for elem in page_coroutines:
-            if isinstance(elem, PageCoroutine):
-                method = getattr(page, elem.method)
-                if isinstance(elem, NavigationPageCoroutine):
+        for pc in page_coroutines:
+            if isinstance(pc, PageCoroutine):
+                method = getattr(page, pc.method)
+                if isinstance(pc, NavigationPageCoroutine):
                     navigation = asyncio.ensure_future(page.waitForNavigation())
-                    await asyncio.gather(navigation, method(*elem.args, **elem.kwargs))
+                    await asyncio.gather(navigation, method(*pc.args, **pc.kwargs))
                     result = navigation.result()
                 else:
-                    result = await method(*elem.args, **elem.kwargs)
-            elif asyncio.iscoroutine(elem):
-                result = await elem
+                    result = await method(*pc.args, **pc.kwargs)
 
             if isinstance(result, pyppeteer.network_manager.Response):
                 response = result
