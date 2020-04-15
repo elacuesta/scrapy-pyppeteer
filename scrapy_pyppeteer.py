@@ -32,8 +32,8 @@ async def _set_request_headers(
 
 class PageAction:
     """
-    Represents an action to be executed on a page,
-    such as "click", "screenshot" or "hover"
+    Represents a coroutine to be awaited on a page,
+    such as "click", "screenshot" or "evaluate"
     """
 
     def __init__(self, method: str, *args, **kwargs) -> None:
@@ -44,10 +44,11 @@ class PageAction:
 
 class NavigationPageAction(PageAction):
     """
-    Same as PageAction, but it waits for a navigation event
-    (forces a Page.waitForNavigation() call wrapped in asyncio.gather)
+    Same as PageAction, but it waits for a navigation event. Use this when you know
+    a coroutine will trigger a navigation event, for instance when clicking on a link.
 
-    See https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.waitForNavigation
+    This forces a Page.waitForNavigation() call wrapped in asyncio.gather, as recommended in
+    https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.click
     """
     pass
 
@@ -74,22 +75,25 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
 
         page_actions = request.meta["pyppeteer"].get("page_actions") or []
         for action in page_actions:
-            method = getattr(page, action.method)
-            if isinstance(action, NavigationPageAction):
-                result = await asyncio.gather(
-                    page.waitForNavigation(), method(*action.args, **action.kwargs),
-                )
-                result = next(filter(None, result))
-            elif isinstance(action, PageAction):
-                result = await method(*action.args, **action.kwargs)
+            if isinstance(action, PageAction):
+                method = getattr(page, action.method)
+                if isinstance(action, NavigationPageAction):
+                    navigation = asyncio.ensure_future(page.waitForNavigation())
+                    await asyncio.gather(navigation, method(*action.args, **action.kwargs))
+                    result = navigation.result()
+                else:
+                    result = await method(*action.args, **action.kwargs)
+            elif asyncio.iscoroutine(action):
+                result = await action
+
             if isinstance(result, pyppeteer.network_manager.Response):
                 response = result
 
-        body = (await response.text()).encode("utf8")
+        body = (await page.content()).encode("utf8")
         await page.close()
         respcls = responsetypes.from_args(headers=response.headers, url=response.url, body=body)
         return respcls(
-            url=response.url,
+            url=page.url,
             status=response.status,
             headers=response.headers,
             body=body,
