@@ -55,7 +55,7 @@ class NavigationPageAction(PageAction):
 class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     def __init__(self, settings: Settings, crawler: Optional[Crawler] = None) -> None:
         super().__init__(settings=settings, crawler=crawler)
-        self.browser: Optional[pyppeteer.browser.Browser] = None
+        self.browser = None
 
     def download_request(self, request: Request, spider: Spider):
         with suppress(KeyError):
