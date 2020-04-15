@@ -58,7 +58,9 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         super().__init__(settings=settings, crawler=crawler)
         self.browser = None
         self.launch_options = settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
-        self.navigation_timeout = settings.getint("PYPPETEER_NAVIGATION_TIMEOUT") or 30_000
+        self.navigation_timeout = None
+        if settings.get("PYPPETEER_NAVIGATION_TIMEOUT"):
+            self.navigation_timeout = settings.getint("PYPPETEER_NAVIGATION_TIMEOUT")
 
     def download_request(self, request: Request, spider: Spider):
         with suppress(KeyError):
@@ -71,7 +73,8 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             self.browser = await pyppeteer.launch(options=self.launch_options)
 
         page = await self.browser.newPage()
-        page.setDefaultNavigationTimeout(self.navigation_timeout)
+        if self.navigation_timeout is not None:
+            page.setDefaultNavigationTimeout(self.navigation_timeout)
         await page.setRequestInterception(True)
         page.on("request", partial(_set_request_headers, scrapy_request=request))
         response = await page.goto(request.url)
