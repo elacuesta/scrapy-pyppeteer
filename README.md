@@ -73,7 +73,7 @@ class AwesomeSpider(scrapy.Spider):
 ```
 
 
-## Page actions
+## Page coroutines
 
 WIP
 

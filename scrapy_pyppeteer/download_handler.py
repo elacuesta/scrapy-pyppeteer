@@ -11,7 +11,7 @@ from scrapy.responsetypes import responsetypes
 from scrapy.settings import Settings
 from twisted.internet.defer import Deferred
 
-from .actions import PageAction, NavigationPageAction
+from .page import PageCoroutine, NavigationPageCoroutine
 
 
 def _force_deferred(coro: Coroutine) -> Deferred:
@@ -59,18 +59,18 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         page.on("request", partial(_set_request_headers, scrapy_request=request))
         response = await page.goto(request.url)
 
-        page_actions = request.meta.get("pyppeteer_page_actions") or []
-        for action in page_actions:
-            if isinstance(action, PageAction):
-                method = getattr(page, action.method)
-                if isinstance(action, NavigationPageAction):
+        page_coroutines = request.meta.get("pyppeteer_page_coroutines") or []
+        for elem in page_coroutines:
+            if isinstance(elem, PageCoroutine):
+                method = getattr(page, elem.method)
+                if isinstance(elem, NavigationPageCoroutine):
                     navigation = asyncio.ensure_future(page.waitForNavigation())
-                    await asyncio.gather(navigation, method(*action.args, **action.kwargs))
+                    await asyncio.gather(navigation, method(*elem.args, **elem.kwargs))
                     result = navigation.result()
                 else:
-                    result = await method(*action.args, **action.kwargs)
-            elif asyncio.iscoroutine(action):
-                result = await action
+                    result = await method(*elem.args, **elem.kwargs)
+            elif asyncio.iscoroutine(elem):
+                result = await elem
 
             if isinstance(result, pyppeteer.network_manager.Response):
                 response = result
