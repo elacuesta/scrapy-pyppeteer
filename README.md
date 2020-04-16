@@ -1,4 +1,5 @@
 # Pyppeteeer integration for Scrapy
+![](https://github.com/elacuesta/scrapy-pyppeteer/workflows/Build/badge.svg)
 
 This project provides a Scrapy Download Handler which performs requests using
 [Pyppeteeer](https://github.com/miyakogi/pyppeteer). It can be used to handle
