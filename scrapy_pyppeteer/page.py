@@ -18,4 +18,5 @@ class NavigationPageCoroutine(PageCoroutine):
     This forces a Page.waitForNavigation() call wrapped in asyncio.gather, as recommended in
     https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.click
     """
+
     pass

@@ -1,4 +1,7 @@
 import asyncio
+import gzip
+import zlib
+from contextlib import suppress
 from functools import partial
 from typing import Coroutine, Optional
 
@@ -32,6 +35,25 @@ async def _set_request_headers(
         await request.continue_(overrides={"headers": headers})
     else:
         await request.continue_()
+
+
+def _compress_body(body: bytes, encoding: str) -> bytes:  # FIXME
+    """
+    Ugly hack to avoid decompression error in Scrapy's HttpCompressionMiddleware
+    downloader middleware. Response bodies are already decompressed by Pyppeteer,
+    hence the decompression step fails. Disabling compression altoghether works,
+    but it means increasing bandwidth for all responses.
+    """
+    if encoding == b"gzip" or encoding == b"x-gzip":
+        return gzip.compress(body)
+    elif encoding == b"deflate":
+        return zlib.compress(body)
+    elif encoding == b"br":
+        with suppress(ImportError):
+            import brotli
+
+            return brotli.compress(body)
+    return b""
 
 
 class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
@@ -75,6 +97,9 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
 
         body = (await page.content()).encode("utf8")
         await page.close()
+        content_encoding = response.headers.get("content-encoding")
+        if content_encoding:
+            body = _compress_body(body, content_encoding.lower())
         respcls = responsetypes.from_args(headers=response.headers, url=response.url, body=body)
         return respcls(
             url=page.url,
