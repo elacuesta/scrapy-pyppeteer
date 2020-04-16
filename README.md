@@ -87,13 +87,13 @@ be an iterable of:
     For instance,
 
     ```python
-PageCoroutine("screenshot", options={"path": "quotes.png", "fullPage": True})
+    PageCoroutine("screenshot", options={"path": "quotes.png", "fullPage": True})
     ```
 
     produces the same effect as:
     ```python
-# 'page' is a pyppeteer.page.Page object
-await page.screenshot(options={"path": "quotes.png", "fullPage": True})
+    # 'page' is a pyppeteer.page.Page object
+    await page.screenshot(options={"path": "quotes.png", "fullPage": True})
     ```
 
 * `scrapy_pyppeteer.page.NavigationPageCoroutine(method: str, *args, **kwargs)`:
@@ -106,16 +106,16 @@ await page.screenshot(options={"path": "quotes.png", "fullPage": True})
     For instance,
 
     ```python
-NavigationPageCoroutine("click", selector="a")
+    NavigationPageCoroutine("click", selector="a")
     ```
 
     produces the same effect as:
     ```python
-# 'page' is a pyppeteer.page.Page object
-await asyncio.gather(
-    page.waitForNavigation(),
-    page.click(selector="a"),
-)
+    # 'page' is a pyppeteer.page.Page object
+    await asyncio.gather(
+        page.waitForNavigation(),
+        page.click(selector="a"),
+    )
     ```
 
 
