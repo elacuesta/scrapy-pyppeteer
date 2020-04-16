@@ -1,0 +1,166 @@
+{
+  "has_next": false,
+  "page": 5,
+  "quotes": [
+    {
+      "author": {
+        "goodreads_link": "/author/show/346732.George_R_R_Martin",
+        "name": "George R.R. Martin",
+        "slug": "George-R-R-Martin"
+      },
+      "tags": [
+        "read",
+        "readers",
+        "reading",
+        "reading-books"
+      ],
+      "text": "\u201cA reader lives a thousand lives before he dies, said Jojen. The man who never reads lives only one.\u201d"
+    },
+    {
+      "author": {
+        "goodreads_link": "/author/show/1069006.C_S_Lewis",
+        "name": "C.S. Lewis",
+        "slug": "C-S-Lewis"
+      },
+      "tags": [
+        "books",
+        "inspirational",
+        "reading",
+        "tea"
+      ],
+      "text": "\u201cYou can never get a cup of tea large enough or a book long enough to suit me.\u201d"
+    },
+    {
+      "author": {
+        "goodreads_link": "/author/show/82952.Marilyn_Monroe",
+        "name": "Marilyn Monroe",
+        "slug": "Marilyn-Monroe"
+      },
+      "tags": [],
+      "text": "\u201cYou believe lies so you eventually learn to trust no one but yourself.\u201d"
+    },
+    {
+      "author": {
+        "goodreads_link": "/author/show/82952.Marilyn_Monroe",
+        "name": "Marilyn Monroe",
+        "slug": "Marilyn-Monroe"
+      },
+      "tags": [
+        "girls",
+        "love"
+      ],
+      "text": "\u201cIf you can make a woman laugh, you can make her do anything.\u201d"
+    },
+    {
+      "author": {
+        "goodreads_link": "/author/show/9810.Albert_Einstein",
+        "name": "Albert Einstein",
+        "slug": "Albert-Einstein"
+      },
+      "tags": [
+        "life",
+        "simile"
+      ],
+      "text": "\u201cLife is like riding a bicycle. To keep your balance, you must keep moving.\u201d"
+    },
+    {
+      "author": {
+        "goodreads_link": "/author/show/82952.Marilyn_Monroe",
+        "name": "Marilyn Monroe",
+        "slug": "Marilyn-Monroe"
+      },
+      "tags": [
+        "love"
+      ],
+      "text": "\u201cThe real lover is the man who can thrill you by kissing your forehead or smiling into your eyes or just staring into space.\u201d"
+    },
+    {
+      "author": {
+        "goodreads_link": "/author/show/82952.Marilyn_Monroe",
+        "name": "Marilyn Monroe",
+        "slug": "Marilyn-Monroe"
+      },
+      "tags": [
+        "attributed-no-source"
+      ],
+      "text": "\u201cA wise girl kisses but doesn't love, listens but doesn't believe, and leaves before she is left.\u201d"
+    },
+    {
+      "author": {
+        "goodreads_link": "/author/show/23924.Martin_Luther_King_Jr_",
+        "name": "Martin Luther King Jr.",
+        "slug": "Martin-Luther-King-Jr"
+      },
+      "tags": [
+        "hope",
+        "inspirational"
+      ],
+      "text": "\u201cOnly in the darkness can you see the stars.\u201d"
+    },
+    {
+      "author": {
+        "goodreads_link": "/author/show/1077326.J_K_Rowling",
+        "name": "J.K. Rowling",
+        "slug": "J-K-Rowling"
+      },
+      "tags": [
+        "dumbledore"
+      ],
+      "text": "\u201cIt matters not what someone is born, but what they grow to be.\u201d"
+    },
+    {
+      "author": {
+        "goodreads_link": "/author/show/10427.James_Baldwin",
+        "name": "James Baldwin",
+        "slug": "James-Baldwin"
+      },
+      "tags": [
+        "love"
+      ],
+      "text": "\u201cLove does not begin and end the way we seem to think it does. Love is a battle, love is a war; love is a growing up.\u201d"
+    }
+  ],
+  "tag": null,
+  "top_ten_tags": [
+    [
+      "love",
+      14
+    ],
+    [
+      "inspirational",
+      13
+    ],
+    [
+      "life",
+      13
+    ],
+    [
+      "humor",
+      12
+    ],
+    [
+      "books",
+      11
+    ],
+    [
+      "reading",
+      7
+    ],
+    [
+      "friendship",
+      5
+    ],
+    [
+      "friends",
+      4
+    ],
+    [
+      "truth",
+      4
+    ],
+    [
+      "simile",
+      3
+    ]
+  ]
+}
