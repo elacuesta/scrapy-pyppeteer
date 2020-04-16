@@ -75,6 +75,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
 
         body = (await page.content()).encode("utf8")
         await page.close()
+        response.headers.pop("content-encoding", None)
         respcls = responsetypes.from_args(headers=response.headers, url=response.url, body=body)
         return respcls(
             url=page.url,
