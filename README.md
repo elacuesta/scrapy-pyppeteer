@@ -1,9 +1,10 @@
-# Pyppeteeer integration for Scrapy
+# Pyppeteer integration for Scrapy
 ![](https://github.com/elacuesta/scrapy-pyppeteer/workflows/Build/badge.svg)
 
 This project provides a Scrapy Download Handler which performs requests using
-[Pyppeteeer](https://github.com/miyakogi/pyppeteer). It can be used to handle
-pages that require JavaScript.
+[Pyppeteer](https://github.com/miyakogi/pyppeteer). It can be used to handle
+pages that require JavaScript. This package does not interfere with regular
+Scrapy workflows such as request scheduling or item processing.
 
 
 ## Motivation
@@ -11,7 +12,7 @@ pages that require JavaScript.
 After the release of [version 2.0](https://docs.scrapy.org/en/latest/news.html#scrapy-2-0-0-2020-03-03),
 which includes partial [coroutine syntax support](https://docs.scrapy.org/en/2.0/topics/coroutines.html)
 and experimental [asyncio support](https://docs.scrapy.org/en/2.0/topics/asyncio.html), Scrapy allows
-to integrate `asyncio`-based projects such as `Pyppeteeer`.
+to integrate `asyncio`-based projects such as `Pyppeteer`.
 
 
 ## Installation
@@ -34,7 +35,7 @@ DOWNLOAD_HANDLERS = {
 ```
 
 Note that the `ScrapyPyppeteerDownloadHandler` class inherits from the default
-`http/https` handler, and it will only use Pyppeteeer for requests that are
+`http/https` handler, and it will only use Pyppeteer for requests that are
 explicitly marked (see the "Basic usage" section for details).
 
 Also, be sure to [install the `asyncio`-based Twisted reactor](https://docs.scrapy.org/en/latest/topics/asyncio.html#installing-the-asyncio-reactor):
