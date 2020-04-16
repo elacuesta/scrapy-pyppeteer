@@ -43,7 +43,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         if settings.get("PYPPETEER_NAVIGATION_TIMEOUT"):
             self.navigation_timeout = settings.getint("PYPPETEER_NAVIGATION_TIMEOUT")
 
-    def download_request(self, request: Request, spider: Spider):
+    def download_request(self, request: Request, spider: Spider) -> Deferred:
         if request.meta.get("pyppeteer_enable"):
             return _force_deferred(self._download_request(request, spider))
         return super().download_request(request, spider)
