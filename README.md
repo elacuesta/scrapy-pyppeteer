@@ -69,7 +69,7 @@ class AwesomeSpider(scrapy.Spider):
         yield scrapy.Request("https://example.org", meta={"pyppeteer_enable": True})
 
     def parse(self, response):
-        yield scrapy.Request("https://scrapy.org", meta={"pyppeteer_enable": True)
+        return response.follow_all(css="a", meta={"pyppeteer_enable": True})
 ```
 
 
@@ -98,9 +98,9 @@ be an iterable of:
 
 * `scrapy_pyppeteer.page.NavigationPageCoroutine(method: str, *args, **kwargs)`:
 
-    _Subclass of PageCoroutine. It waits for a navigation event: use this when you know
+    _Subclass of `PageCoroutine`. It waits for a navigation event: use this when you know
     a coroutine will trigger a navigation event, for instance when clicking on a link.
-    This forces a Page.waitForNavigation() call wrapped in asyncio.gather, as recommended in
+    This forces a `Page.waitForNavigation()` call wrapped in `asyncio.gather`, as recommended in
     [the Pyppeteer docs](https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.click)._
 
     For instance,
