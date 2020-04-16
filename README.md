@@ -75,17 +75,19 @@ class AwesomeSpider(scrapy.Spider):
 
 ## Page coroutines
 
-In addition to `pyppeteer_enable`, `pyppeteer_page_coroutines` could be supplied to request
-certain actions to be performed before returning the final `Response` to the callback. This should
-be an iterable of:
+A sorted iterable could be passed in the `pyppeteer_page_coroutines`
+[Request.meta](https://docs.scrapy.org/en/latest/topics/request-response.html#scrapy.http.Request.meta)
+key to request certain actions to be performed before returning the final `Response`
+to the callback. Supported actions are:
 
 * `scrapy_pyppeteer.page.PageCoroutine(method: str, *args, **kwargs)`:
 
-    _Represents a coroutine to be awaited on a Pyppeteer page,
-    such as "click", "screenshot", "evaluate", etc._
+    _Represents a coroutine to be awaited on a `pyppeteer.page.Page` object,
+    such as "click", "screenshot", "evaluate", etc.
+    `method` should be the name of the coroutine, `*args` and `**kwargs`
+    are passed to the function call._
 
     For instance,
-
     ```python
     PageCoroutine("screenshot", options={"path": "quotes.png", "fullPage": True})
     ```
@@ -104,7 +106,6 @@ be an iterable of:
     [the Pyppeteer docs](https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.click)._
 
     For instance,
-
     ```python
     NavigationPageCoroutine("click", selector="a")
     ```
@@ -121,7 +122,47 @@ be an iterable of:
 
 ## Examples
 
-WIP
+**Click on a link, save the resulting page as PDF**
+
+```python
+class ExampleSpider(scrapy.Spider):
+    def start_requests(self):
+        yield Request(
+            url="https://example.org",
+            meta=dict(
+                pyppeteer_enable=True,
+                pyppeteer_page_coroutines=[
+                    NavigationPageCoroutine("click", selector="a"),
+                    PageCoroutine("pdf", options={"path": "iana.pdf"}),
+                ],
+            ),
+        )
+
+    def parse(self, response):
+        yield {"url": response.url}  # response.url is "https://www.iana.org/domains/reserved"
+```
+
+**Scroll down on an infinite scroll page, take a screenshot of the full page**
+
+```python
+class ScrollSpider(scrapy.Spider):
+    def start_requests(self):
+        yield Request(
+            url="http://quotes.toscrape.com/scroll",
+            meta=dict(
+                pyppeteer_enable=True,
+                pyppeteer_page_coroutines=[
+                    PageCoroutine("waitForSelector", "div.quote"),
+                    PageCoroutine("evaluate", "window.scrollBy(0, 2000)"),
+                    PageCoroutine("waitForSelector", "div.quote:nth-child(11)"),  # 10 per page
+                    PageCoroutine("screenshot", options={"path": "quotes.png", "fullPage": True}),
+                ],
+            ),
+        )
+
+    def parse(self, response):
+        yield {"quote_count": len(response.css("div.quote")}  # 100 quotes
+```
 
 
 ## Acknowledgements
