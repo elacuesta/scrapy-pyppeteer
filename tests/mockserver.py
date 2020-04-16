@@ -9,7 +9,7 @@ class MockServer:
         self.proc = Popen(
             [sys.executable, "-u", "-m", "http.server", "0"],
             stdout=PIPE,
-            cwd=Path(__file__).absolute().parent / "site",
+            cwd=str(Path(__file__).absolute().parent / "site"),
         )
         self.address, self.port = re.search(
             r"^Serving HTTP on (\d+\.\d+\.\d+\.\d+) port (\d+)",
