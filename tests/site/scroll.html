@@ -33,7 +33,7 @@
 
                 function updatePage(page) {
                     $('#loading').show('fast');
-                    $.get('api/quotes' + page + '.json').done(function(data) {
+                    $.get('data/quotes' + page + '.json').done(function(data) {
                         appendQuotes(data.quotes);
                         hasNextPage = data.has_next;
                         $('#loading').hide('fast');
