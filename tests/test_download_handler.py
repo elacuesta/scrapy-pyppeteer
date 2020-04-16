@@ -13,7 +13,7 @@ class MockSpider(Spider):
 
 
 @pytest.mark.asyncio
-async def test_say():
+async def test_basic_response():
     handler = ScrapyPyppeteerDownloadHandler(Settings())
 
     with MockServer() as server:
