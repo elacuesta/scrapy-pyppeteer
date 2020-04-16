@@ -22,7 +22,7 @@ $ pip install https://github.com/elacuesta/scrapy-pyppeteer
 
 ## Configuration
 
-Replace the default `http` and `https` Download Handlers through the
+Replace the default `http` and `https` Download Handlers through
 [`DOWNLOAD_HANDLERS`](https://docs.scrapy.org/en/latest/topics/settings.html):
 
 ```python
