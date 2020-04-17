@@ -12,10 +12,6 @@ from scrapy_pyppeteer.page import PageCoroutine, NavigationPageCoroutine
 from tests.mockserver import MockServer
 
 
-class MockSpider(Spider):
-    name = "test"
-
-
 @pytest.mark.asyncio
 async def test_basic_response():
     handler = ScrapyPyppeteerDownloadHandler(Settings())
@@ -23,10 +19,11 @@ async def test_basic_response():
     with MockServer() as server:
         index = "http://{}:{}/index.html".format(server.address, server.port)
         req = Request(index)
-        resp = await handler._download_request(req, MockSpider())
+        resp = await handler._download_request(req, Spider("foo"))
 
     assert isinstance(resp, Response)
     assert resp.request is req
+    assert resp.css("a::text").getall() == ["Lorem Ipsum", "Infinite Scroll"]
     assert resp.url == index
     assert resp.status == 200
 
@@ -45,7 +42,7 @@ async def test_page_coroutine_navigation():
                 "pyppeteer_page_coroutines": [NavigationPageCoroutine("click", "a.lorem_ipsum")]
             },
         )
-        resp = await handler._download_request(req, MockSpider())
+        resp = await handler._download_request(req, Spider("foo"))
 
     assert isinstance(resp, Response)
     assert resp.request is req
@@ -76,7 +73,7 @@ async def test_page_coroutine_infinite_scroll():
                 ],
             },
         )
-        resp = await handler._download_request(req, MockSpider())
+        resp = await handler._download_request(req, Spider("foo"))
 
     assert isinstance(resp, Response)
     assert resp.request is req
@@ -111,7 +108,7 @@ async def test_page_coroutine_screenshot_pdf():
                 ],
             },
         )
-        await handler._download_request(req, MockSpider())
+        await handler._download_request(req, Spider("foo"))
         assert get_mimetype(image_file) == "image/png"
         assert get_mimetype(pdf_file) == "application/pdf"
         image_file.close()
