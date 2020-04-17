@@ -1,5 +1,5 @@
 # Pyppeteer integration for Scrapy
-![](https://github.com/elacuesta/scrapy-pyppeteer/workflows/Build/badge.svg)
+[![actions](https://github.com/elacuesta/scrapy-pyppeteer/workflows/Build/badge.svg)](https://github.com/elacuesta/scrapy-pyppeteer/actions)
 [![codecov](https://codecov.io/gh/elacuesta/scrapy-pyppeteer/branch/master/graph/badge.svg)](https://codecov.io/gh/elacuesta/scrapy-pyppeteer)
 
 
