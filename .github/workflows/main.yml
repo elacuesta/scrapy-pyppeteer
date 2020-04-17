@@ -1,29 +1,18 @@
 name: Build
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on: [push, pull_request]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-18.04, macos-10.15]
-        python-version: [3.6, 3.7, 3.8]
+    runs-on: ubuntu-18.04
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python version
       uses: actions/setup-python@v1
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.8
 
     - name: Install dependencies
       run: |
@@ -39,8 +28,30 @@ jobs:
     - name: python-black check
       run: make black
 
-    - name: Run tests
+    - name: Generate coverage report
       run: tox -e py
 
     - name: Upload coverage report
       run: bash <(curl -s https://codecov.io/bash)
+
+
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-10.15]
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install tox
+      run: pip install tox
+
+    - name: Run tests
+      run: tox -e py
