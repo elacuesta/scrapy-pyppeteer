@@ -8,7 +8,7 @@ from urllib.parse import urljoin
 class MockServer:
     def __enter__(self):
         self.proc = Popen(
-            [sys.executable, "-u", "-m", "http.server", "0"],
+            [sys.executable, "-u", "-m", "http.server", "0", "--bind", "127.0.0.1"],
             stdout=PIPE,
             cwd=str(Path(__file__).absolute().parent / "site"),
         )
