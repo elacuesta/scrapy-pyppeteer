@@ -84,3 +84,9 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             body=body,
             request=request,
         )
+
+    def close(self) -> Deferred:
+        dfd = super().close()
+        if self.browser:
+            dfd.chainDeferred(_force_deferred(self.browser.close()))
+        return dfd
