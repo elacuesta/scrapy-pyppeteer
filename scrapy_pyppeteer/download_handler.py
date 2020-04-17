@@ -9,7 +9,7 @@ from scrapy.crawler import Crawler
 from scrapy.http import Request, Response
 from scrapy.responsetypes import responsetypes
 from scrapy.settings import Settings
-from twisted.internet.defer import Deferred
+from twisted.internet.defer import Deferred, inlineCallbacks
 
 from .page import PageCoroutine, NavigationPageCoroutine
 
@@ -85,8 +85,8 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             request=request,
         )
 
+    @inlineCallbacks
     def close(self) -> Deferred:
-        dfd = super().close()
+        yield super().close()
         if self.browser:
-            dfd.chainDeferred(_force_deferred(self.browser.close()))
-        return dfd
+            yield _force_deferred(self.browser.close())
