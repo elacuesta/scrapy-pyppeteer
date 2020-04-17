@@ -2,6 +2,7 @@ import re
 import sys
 from pathlib import Path
 from subprocess import Popen, PIPE
+from urllib.parse import urljoin
 
 
 class MockServer:
@@ -20,3 +21,6 @@ class MockServer:
     def __exit__(self, exc_type, exc_value, traceback):
         self.proc.kill()
         self.proc.communicate()
+
+    def urljoin(self, url):
+        return urljoin("http://{}:{}".format(self.address, self.port), url)
