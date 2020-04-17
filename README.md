@@ -1,5 +1,7 @@
 # Pyppeteer integration for Scrapy
 ![](https://github.com/elacuesta/scrapy-pyppeteer/workflows/Build/badge.svg)
+[![codecov](https://codecov.io/gh/elacuesta/scrapy-pyppeteer/branch/master/graph/badge.svg)](https://codecov.io/gh/elacuesta/scrapy-pyppeteer)
+
 
 This project provides a Scrapy Download Handler which performs requests using
 [Pyppeteer](https://github.com/miyakogi/pyppeteer). It can be used to handle
