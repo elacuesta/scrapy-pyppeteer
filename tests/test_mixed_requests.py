@@ -8,7 +8,7 @@ from scrapy_pyppeteer.download_handler import ScrapyPyppeteerDownloadHandler
 from tests.mockserver import MockServer
 
 
-class NonPyppeteerRequestsTestCase(TestCase):
+class MixedRequestsTestCase(TestCase):
     def setUp(self):
         self.server = MockServer()
         self.server.__enter__()
@@ -29,4 +29,15 @@ class NonPyppeteerRequestsTestCase(TestCase):
             self.assertNotIn("pyppeteer", response.flags)
 
         request = Request(self.base_url + "/index.html")
+        return self.handler.download_request(request, Spider("foo")).addCallback(_test)
+
+    def test_pyppeteer_request(self):
+        def _test(response):
+            self.assertIsInstance(response, Response)
+            self.assertEqual(response.css("a::text").getall(), ["Lorem Ipsum", "Infinite Scroll"])
+            self.assertEqual(response.url, request.url)
+            self.assertEqual(response.status, 200)
+            self.assertIn("pyppeteer", response.flags)
+
+        request = Request(self.base_url + "/index.html", meta={"pyppeteer_enable": True})
         return self.handler.download_request(request, Spider("foo")).addCallback(_test)
