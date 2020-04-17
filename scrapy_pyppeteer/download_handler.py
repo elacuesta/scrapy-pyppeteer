@@ -15,10 +15,8 @@ from .page import PageCoroutine, NavigationPageCoroutine
 
 
 def _force_deferred(coro: Coroutine) -> Deferred:
-    dfd = Deferred().addCallback(lambda f: f.result())
     future = asyncio.ensure_future(coro)
-    future.add_done_callback(dfd.callback)
-    return dfd
+    return Deferred.fromFuture(future)
 
 
 async def _set_request_headers(
