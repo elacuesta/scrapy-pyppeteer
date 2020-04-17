@@ -25,6 +25,7 @@ async def test_basic_response():
     assert resp.request is req
     assert resp.url == req.url
     assert resp.status == 200
+    assert "pyppeteer" in resp.flags
     assert resp.css("a::text").getall() == ["Lorem Ipsum", "Infinite Scroll"]
 
     await handler.browser.close()
@@ -47,6 +48,7 @@ async def test_page_coroutine_navigation():
     assert resp.request is req
     assert resp.url == server.urljoin("/lorem_ipsum.html")
     assert resp.status == 200
+    assert "pyppeteer" in resp.flags
     assert resp.css("title::text").get() == "Lorem Ipsum"
     text = resp.css("p::text").get()
     assert text == "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
@@ -77,6 +79,7 @@ async def test_page_coroutine_infinite_scroll():
     assert resp.request is req
     assert resp.url == server.urljoin("/scroll.html")
     assert resp.status == 200
+    assert "pyppeteer" in resp.flags
     assert len(resp.css("div.quote")) == 30
 
     await handler.browser.close()

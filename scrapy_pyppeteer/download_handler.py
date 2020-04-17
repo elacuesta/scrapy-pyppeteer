@@ -83,6 +83,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             headers=response.headers,
             body=body,
             request=request,
+            flags=["pyppeteer"],
         )
 
     @inlineCallbacks

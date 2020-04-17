@@ -26,6 +26,7 @@ class NonPyppeteerRequestsTestCase(TestCase):
             self.assertEqual(response.css("a::text").getall(), ["Lorem Ipsum", "Infinite Scroll"])
             self.assertEqual(response.url, request.url)
             self.assertEqual(response.status, 200)
+            self.assertNotIn("pyppeteer", response.flags)
 
         request = Request(self.base_url + "/index.html")
         return self.handler.download_request(request, Spider("foo")).addCallback(_test)
