@@ -18,8 +18,7 @@ class NonPyppeteerRequestsTestCase(TestCase):
     @defer.inlineCallbacks
     def tearDown(self):
         self.server.__exit__(None, None, None)
-        if hasattr(self.handler, "close"):
-            yield self.handler.close()
+        yield self.handler.close()
 
     def test_regular_request(self):
         def _test(response):
