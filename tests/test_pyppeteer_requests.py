@@ -18,7 +18,7 @@ async def test_basic_response():
     handler = ScrapyPyppeteerDownloadHandler(Settings())
 
     with MockServer() as server:
-        req = Request(server.urljoin("/index.html"))
+        req = Request(server.urljoin("/index.html"), meta={"pyppeteer": True})
         resp = await handler._download_request(req, Spider("foo"))
 
     assert isinstance(resp, Response)
@@ -39,7 +39,9 @@ async def test_page_coroutine_navigation():
         req = Request(
             url=server.urljoin("/index.html"),
             meta={
-                "pyppeteer_page_coroutines": [NavigationPageCoroutine("click", "a.lorem_ipsum")]
+                "pyppeteer": {
+                    "page_coroutines": [NavigationPageCoroutine("click", "a.lorem_ipsum")]
+                }
             },
         )
         resp = await handler._download_request(req, Spider("foo"))
@@ -64,13 +66,15 @@ async def test_page_coroutine_infinite_scroll():
         req = Request(
             url=server.urljoin("/scroll.html"),
             meta={
-                "pyppeteer_page_coroutines": [
-                    PageCoroutine("waitForSelector", "div.quote"),  # first 10 quotes
-                    PageCoroutine("evaluate", "window.scrollBy(0, 2000)"),
-                    PageCoroutine("waitForSelector", "div.quote:nth-child(11)"),  # second request
-                    PageCoroutine("evaluate", "window.scrollBy(0, 2000)"),
-                    PageCoroutine("waitForSelector", "div.quote:nth-child(21)"),  # third request
-                ],
+                "pyppeteer": {
+                    "page_coroutines": [
+                        PageCoroutine("waitForSelector", "div.quote"),  # first 10 quotes
+                        PageCoroutine("evaluate", "window.scrollBy(0, 2000)"),
+                        PageCoroutine("waitForSelector", "div.quote:nth-child(11)"),  # 2nd request
+                        PageCoroutine("evaluate", "window.scrollBy(0, 2000)"),
+                        PageCoroutine("waitForSelector", "div.quote:nth-child(21)"),  # 3rd request
+                    ],
+                }
             },
         )
         resp = await handler._download_request(req, Spider("foo"))
@@ -102,10 +106,14 @@ async def test_page_coroutine_screenshot_pdf():
         req = Request(
             url=server.urljoin("/index.html"),
             meta={
-                "pyppeteer_page_coroutines": [
-                    PageCoroutine("screenshot", options={"path": image_file.name, "type": "png"}),
-                    PageCoroutine("pdf", options={"path": pdf_file.name}),
-                ],
+                "pyppeteer": {
+                    "page_coroutines": [
+                        PageCoroutine(
+                            "screenshot", options={"path": image_file.name, "type": "png"}
+                        ),
+                        PageCoroutine("pdf", options={"path": pdf_file.name}),
+                    ]
+                },
             },
         )
         await handler._download_request(req, Spider("foo"))
@@ -125,7 +133,9 @@ async def test_page_coroutine_timeout():
     with MockServer() as server:
         req = Request(
             url=server.urljoin("/index.html"),
-            meta={"pyppeteer_page_coroutines": [NavigationPageCoroutine("click", selector="h1")]},
+            meta={
+                "pyppeteer": {"page_coroutines": [NavigationPageCoroutine("click", selector="h1")]}
+            },
         )
         with pytest.raises(pyppeteer.errors.TimeoutError):
             await handler._download_request(req, Spider("foo"))

@@ -42,13 +42,17 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             self.navigation_timeout = settings.getint("PYPPETEER_NAVIGATION_TIMEOUT")
 
     def download_request(self, request: Request, spider: Spider) -> Deferred:
-        if request.meta.get("pyppeteer_enable"):
+        if request.meta.get("pyppeteer"):
             return _force_deferred(self._download_request(request, spider))
         return super().download_request(request, spider)
 
     async def _download_request(self, request: Request, spider: Spider) -> Response:
         if self.browser is None:
             self.browser = await pyppeteer.launch(options=self.launch_options)
+
+        meta = {}
+        if isinstance(request.meta.get("pyppeteer"), dict):
+            meta = request.meta["pyppeteer"]
 
         page = await self.browser.newPage()
         if self.navigation_timeout is not None:
@@ -57,7 +61,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         page.on("request", partial(_set_request_headers, scrapy_request=request))
         response = await page.goto(request.url)
 
-        page_coroutines = request.meta.get("pyppeteer_page_coroutines") or []
+        page_coroutines = meta.get("page_coroutines") or ()
         for pc in page_coroutines:
             if isinstance(pc, PageCoroutine):
                 method = getattr(page, pc.method)
@@ -72,7 +76,10 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
                 response = result
 
         body = (await page.content()).encode("utf8")
-        await page.close()
+        if meta.get("include_page"):
+            meta["page"] = page
+        else:
+            await page.close()
         response.headers.pop("content-encoding", None)
         respcls = responsetypes.from_args(headers=response.headers, url=response.url, body=body)
         return respcls(

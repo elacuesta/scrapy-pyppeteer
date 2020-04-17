@@ -39,5 +39,5 @@ class MixedRequestsTestCase(TestCase):
             self.assertEqual(response.status, 200)
             self.assertIn("pyppeteer", response.flags)
 
-        request = Request(self.base_url + "/index.html", meta={"pyppeteer_enable": True})
+        request = Request(self.base_url + "/index.html", meta={"pyppeteer": True})
         return self.handler.download_request(request, Spider("foo")).addCallback(_test)
