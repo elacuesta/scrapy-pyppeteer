@@ -62,27 +62,65 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 
 ## Basic usage
 
-Set the `pyppeteer_enable` [Request.meta](https://docs.scrapy.org/en/latest/topics/request-response.html#scrapy.http.Request.meta)
+Set the `pyppeteer` [Request.meta](https://docs.scrapy.org/en/latest/topics/request-response.html#scrapy.http.Request.meta)
 key to download a request using Pyppeteer:
 
 ```python
 import scrapy
 
 class AwesomeSpider(scrapy.Spider):
+    name = "awesome"
+
     def start_requests(self):
-        yield scrapy.Request("https://example.org", meta={"pyppeteer_enable": True})
+        yield scrapy.Request("https://example.org", meta={"pyppeteer": True})
 
     def parse(self, response):
-        return response.follow_all(css="a", meta={"pyppeteer_enable": True})
+        return response.follow_all(css="a", meta={"pyppeteer": True})
 ```
+
+### Receiving the Page object in the callback
+
+Specifying `pyppeteer.page.Page` as the type for a callback argument will result
+in the corresponding `Page` object being injected in the callback.
+
+```python
+import scrapy
+import pyppeteer
+
+class AwesomeSpiderWithPage(scrapy.Spider):
+    name = "page"
+
+    def start_requests(self):
+        yield scrapy.Request("https://example.org", meta={"pyppeteer": True})
+
+    async def parse(self, response, page: pyppeteer.page.Page):
+        title = await page.title()  # "Example Domain"
+        yield {"title": title}
+        await page.close()
+```
+
+**Notes:**
+
+* In order to avoid memory issues, it is recommended to manually close the page
+  by awaiting the `Page.close` coroutine. To do this, the callback needs to be
+  defined as a coroutine function (`async def`):
+* Any network operations resulting on awaiting a coroutine on a `Page` object
+  (`goto`, `goBack`, etc) will be executed directly by Pyppeteer, bypassing the
+  Scrapy request workflow (Scheduler, Middlewares, etc).
 
 
 ## Page coroutines
 
 A sorted iterable could be passed in the `pyppeteer_page_coroutines`
 [Request.meta](https://docs.scrapy.org/en/latest/topics/request-response.html#scrapy.http.Request.meta)
-key to request certain actions to be performed before returning the final `Response`
-to the callback. Supported actions are:
+key to request coroutines to be awaited on the `Page` before returning the final
+`Response` to the callback.
+
+This is useful when you need to perform certain actions on a page, like scrolling
+down or clicking links, and you want everything to count as a single Scrapy
+Response, containing the final result.
+
+### Supported actions
 
 * `scrapy_pyppeteer.page.PageCoroutine(method: str, *args, **kwargs)`:
 
@@ -129,12 +167,14 @@ to the callback. Supported actions are:
 **Click on a link, save the resulting page as PDF**
 
 ```python
-class ExampleSpider(scrapy.Spider):
+class ClickAndSavePdfSpider(scrapy.Spider):
+    name = "pdf"
+
     def start_requests(self):
         yield Request(
             url="https://example.org",
             meta=dict(
-                pyppeteer_enable=True,
+                pyppeteer=True,
                 pyppeteer_page_coroutines=[
                     NavigationPageCoroutine("click", selector="a"),
                     PageCoroutine("pdf", options={"path": "iana.pdf"}),
@@ -150,11 +190,13 @@ class ExampleSpider(scrapy.Spider):
 
 ```python
 class ScrollSpider(scrapy.Spider):
+    name = "scroll"
+
     def start_requests(self):
         yield Request(
             url="http://quotes.toscrape.com/scroll",
             meta=dict(
-                pyppeteer_enable=True,
+                pyppeteer=True,
                 pyppeteer_page_coroutines=[
                     PageCoroutine("waitForSelector", "div.quote"),
                     PageCoroutine("evaluate", "window.scrollBy(0, 2000)"),
