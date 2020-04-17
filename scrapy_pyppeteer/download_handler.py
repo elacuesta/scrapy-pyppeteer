@@ -37,9 +37,9 @@ async def _set_request_headers(
 class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     def __init__(self, settings: Settings, crawler: Optional[Crawler] = None) -> None:
         super().__init__(settings=settings, crawler=crawler)
-        self.browser = None
-        self.launch_options = settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
-        self.navigation_timeout = None
+        self.browser: Optional[pyppeteer.browser.Browser] = None
+        self.launch_options: dict = settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
+        self.navigation_timeout: Optional[int] = None
         if settings.get("PYPPETEER_NAVIGATION_TIMEOUT"):
             self.navigation_timeout = settings.getint("PYPPETEER_NAVIGATION_TIMEOUT")
 
@@ -52,7 +52,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         if self.browser is None:
             self.browser = await pyppeteer.launch(options=self.launch_options)
 
-        page = await self.browser.newPage()  # type: ignore
+        page = await self.browser.newPage()
         if self.navigation_timeout is not None:
             page.setDefaultNavigationTimeout(self.navigation_timeout)
         await page.setRequestInterception(True)
