@@ -1,6 +1,6 @@
 from scrapy import Spider
 from scrapy.http import Request, Response
-from scrapy.settings import Settings
+from scrapy.utils.test import get_crawler
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
@@ -9,11 +9,13 @@ from tests.mockserver import MockServer
 
 
 class MixedRequestsTestCase(TestCase):
+    @defer.inlineCallbacks
     def setUp(self):
         self.server = MockServer()
         self.server.__enter__()
         self.base_url = "http://{}:{}".format(self.server.address, self.server.port)
-        self.handler = ScrapyPyppeteerDownloadHandler(Settings())
+        self.handler = ScrapyPyppeteerDownloadHandler.from_crawler(get_crawler())
+        yield self.handler._launch_browser_signal_handler()
 
     @defer.inlineCallbacks
     def tearDown(self):

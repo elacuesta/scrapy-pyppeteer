@@ -5,7 +5,7 @@ import pyppeteer
 import pytest
 from scrapy import Spider
 from scrapy.http import Request, Response
-from scrapy.settings import Settings
+from scrapy.utils.test import get_crawler
 
 from scrapy_pyppeteer.download_handler import ScrapyPyppeteerDownloadHandler
 from scrapy_pyppeteer.page import PageCoroutine, NavigationPageCoroutine
@@ -15,7 +15,8 @@ from tests.mockserver import MockServer
 
 @pytest.mark.asyncio
 async def test_basic_response():
-    handler = ScrapyPyppeteerDownloadHandler(Settings())
+    handler = ScrapyPyppeteerDownloadHandler(get_crawler())
+    await handler._launch_browser()
 
     with MockServer() as server:
         req = Request(server.urljoin("/index.html"), meta={"pyppeteer": True})
@@ -33,7 +34,8 @@ async def test_basic_response():
 
 @pytest.mark.asyncio
 async def test_page_coroutine_navigation():
-    handler = ScrapyPyppeteerDownloadHandler(Settings())
+    handler = ScrapyPyppeteerDownloadHandler(get_crawler())
+    await handler._launch_browser()
 
     with MockServer() as server:
         req = Request(
@@ -59,7 +61,8 @@ async def test_page_coroutine_navigation():
 
 @pytest.mark.asyncio
 async def test_page_coroutine_infinite_scroll():
-    handler = ScrapyPyppeteerDownloadHandler(Settings())
+    handler = ScrapyPyppeteerDownloadHandler(get_crawler())
+    await handler._launch_browser()
 
     with MockServer() as server:
         req = Request(
@@ -98,7 +101,8 @@ async def test_page_coroutine_screenshot_pdf():
 
     image_file = NamedTemporaryFile()
     pdf_file = NamedTemporaryFile()
-    handler = ScrapyPyppeteerDownloadHandler(Settings())
+    handler = ScrapyPyppeteerDownloadHandler(get_crawler())
+    await handler._launch_browser()
 
     with MockServer() as server:
         req = Request(
@@ -122,8 +126,9 @@ async def test_page_coroutine_screenshot_pdf():
 
 @pytest.mark.asyncio
 async def test_page_coroutine_timeout():
-    settings = Settings({"PYPPETEER_NAVIGATION_TIMEOUT": 1000})
-    handler = ScrapyPyppeteerDownloadHandler(settings)
+    crawler = get_crawler(settings_dict={"PYPPETEER_NAVIGATION_TIMEOUT": 1000})
+    handler = ScrapyPyppeteerDownloadHandler(crawler)
+    await handler._launch_browser()
 
     with MockServer() as server:
         req = Request(
@@ -141,7 +146,8 @@ async def test_page_coroutine_timeout():
 
 @pytest.mark.asyncio
 async def test_page_to_callback():
-    handler = ScrapyPyppeteerDownloadHandler(Settings())
+    handler = ScrapyPyppeteerDownloadHandler(get_crawler())
+    await handler._launch_browser()
 
     async def callback(self, response, page: pyppeteer.page.Page):
         pass

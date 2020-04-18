@@ -1,14 +1,14 @@
 import asyncio
 from functools import partial
-from typing import Coroutine, Optional
+from typing import Coroutine, Optional, Type, TypeVar
 
 import pyppeteer
+from scrapy import signals
 from scrapy import Spider
 from scrapy.core.downloader.handlers.http import HTTPDownloadHandler
 from scrapy.crawler import Crawler
 from scrapy.http import Request, Response
 from scrapy.responsetypes import responsetypes
-from scrapy.settings import Settings
 from twisted.internet.defer import Deferred, inlineCallbacks
 
 from .page import PageCoroutine, NavigationPageCoroutine
@@ -32,14 +32,28 @@ async def _set_request_headers(
         await request.continue_()
 
 
+PyppeteerHandler = TypeVar("PyppeteerHandler", bound="ScrapyPyppeteerDownloadHandler")
+
+
 class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
-    def __init__(self, settings: Settings, crawler: Optional[Crawler] = None) -> None:
-        super().__init__(settings=settings, crawler=crawler)
-        self.browser: Optional[pyppeteer.browser.Browser] = None
-        self.launch_options: dict = settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
+    def __init__(self, crawler: Crawler) -> None:
+        super().__init__(settings=crawler.settings, crawler=crawler)
+        self.launch_options: dict = crawler.settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
         self.navigation_timeout: Optional[int] = None
-        if settings.get("PYPPETEER_NAVIGATION_TIMEOUT"):
-            self.navigation_timeout = settings.getint("PYPPETEER_NAVIGATION_TIMEOUT")
+        if crawler.settings.get("PYPPETEER_NAVIGATION_TIMEOUT"):
+            self.navigation_timeout = crawler.settings.getint("PYPPETEER_NAVIGATION_TIMEOUT")
+        self.browser: Optional[pyppeteer.browser.Browser] = None
+        crawler.signals.connect(self._launch_browser_signal_handler, signals.engine_started)
+
+    @classmethod
+    def from_crawler(cls: Type[PyppeteerHandler], crawler: Crawler) -> PyppeteerHandler:
+        return cls(crawler)
+
+    def _launch_browser_signal_handler(self) -> Deferred:
+        return _force_deferred(self._launch_browser())
+
+    async def _launch_browser(self) -> None:
+        self.browser = await pyppeteer.launch(options=self.launch_options)
 
     def download_request(self, request: Request, spider: Spider) -> Deferred:
         if request.meta.get("pyppeteer"):
@@ -47,10 +61,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         return super().download_request(request, spider)
 
     async def _download_request(self, request: Request, spider: Spider) -> Response:
-        if self.browser is None:
-            self.browser = await pyppeteer.launch(options=self.launch_options)
-
-        page = await self.browser.newPage()
+        page = await self.browser.newPage()  # type: ignore
         if self.navigation_timeout is not None:
             page.setDefaultNavigationTimeout(self.navigation_timeout)
         await page.setRequestInterception(True)
