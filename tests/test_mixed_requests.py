@@ -13,7 +13,6 @@ class MixedRequestsTestCase(TestCase):
     def setUp(self):
         self.server = MockServer()
         self.server.__enter__()
-        self.base_url = "http://{}:{}".format(self.server.address, self.server.port)
         self.handler = ScrapyPyppeteerDownloadHandler.from_crawler(get_crawler())
         yield self.handler._launch_browser_signal_handler()
 
@@ -30,7 +29,7 @@ class MixedRequestsTestCase(TestCase):
             self.assertEqual(response.status, 200)
             self.assertNotIn("pyppeteer", response.flags)
 
-        request = Request(self.base_url + "/index.html")
+        request = Request(self.server.urljoin("/index.html"))
         return self.handler.download_request(request, Spider("foo")).addCallback(_test)
 
     def test_pyppeteer_request(self):
@@ -41,5 +40,5 @@ class MixedRequestsTestCase(TestCase):
             self.assertEqual(response.status, 200)
             self.assertIn("pyppeteer", response.flags)
 
-        request = Request(self.base_url + "/index.html", meta={"pyppeteer": True})
+        request = Request(self.server.urljoin("/index.html"), meta={"pyppeteer": True})
         return self.handler.download_request(request, Spider("foo")).addCallback(_test)
