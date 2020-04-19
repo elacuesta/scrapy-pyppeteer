@@ -1,2 +1,2 @@
-pyppeteer>=0.0.25
+pyppeteer>=0.0.23
 scrapy>=2.0

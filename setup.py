@@ -23,5 +23,5 @@ setuptools.setup(
         "Topic :: Software Development :: Libraries :: Application Frameworks",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    install_requires=["scrapy>=2.0.0", "pyppeteer>=0.0.25"],
+    install_requires=["scrapy>=2.0", "pyppeteer>=0.0.23"],
 )

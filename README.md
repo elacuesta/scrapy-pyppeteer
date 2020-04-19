@@ -17,6 +17,13 @@ and experimental [asyncio support](https://docs.scrapy.org/en/2.0/topics/asyncio
 to integrate `asyncio`-based projects such as `Pyppeteer`.
 
 
+## Requirements
+
+* Python 3.6+
+* Scrapy 2.0+
+* Pyppeteer 0.0.23+
+
+
 ## Installation
 
 This package is not (yet) available on PyPI, but it can be installed from GitHub:
