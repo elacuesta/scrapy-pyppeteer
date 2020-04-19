@@ -81,7 +81,9 @@ class AwesomeSpider(scrapy.Spider):
 ### Receiving the Page object in the callback
 
 Specifying `pyppeteer.page.Page` as the type for a callback argument will result
-in the corresponding `Page` object being injected in the callback.
+in the corresponding `Page` object being injected in the callback. In order to
+able to `await` coroutines on the provided `Page` object, the callback needs to
+be defined as a coroutine function (`async def`).
 
 ```python
 import scrapy
@@ -102,9 +104,8 @@ class AwesomeSpiderWithPage(scrapy.Spider):
 **Notes:**
 
 * In order to avoid memory issues, it is recommended to manually close the page
-  by awaiting the `Page.close` coroutine. To do this, the callback needs to be
-  defined as a coroutine function (`async def`):
-* Any network operations resulting on awaiting a coroutine on a `Page` object
+  by awaiting the `Page.close` coroutine.
+* Any network operations resulting from awaiting a coroutine on a `Page` object
   (`goto`, `goBack`, etc) will be executed directly by Pyppeteer, bypassing the
   Scrapy request workflow (Scheduler, Middlewares, etc).
 
@@ -201,13 +202,13 @@ class ScrollSpider(scrapy.Spider):
                     PageCoroutine("waitForSelector", "div.quote"),
                     PageCoroutine("evaluate", "window.scrollBy(0, 2000)"),
                     PageCoroutine("waitForSelector", "div.quote:nth-child(11)"),  # 10 per page
-                    PageCoroutine("screenshot", options={"path": "quotes.png", "fullPage": True}),
                 ],
             ),
         )
 
-    def parse(self, response):
-        yield {"quote_count": len(response.css("div.quote")}  # 100 quotes
+    async def parse(self, response, page: pyppeteer.page.Page):
+        await page.screenshot(options={"path": "quotes.png", "fullPage": True})
+        yield {"quote_count": len(response.css("div.quote"))}  # 100 quotes
 ```
 
 
