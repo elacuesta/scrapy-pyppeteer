@@ -9,6 +9,7 @@ from scrapy.core.downloader.handlers.http import HTTPDownloadHandler
 from scrapy.crawler import Crawler
 from scrapy.http import Request, Response
 from scrapy.responsetypes import responsetypes
+from scrapy.utils.reactor import verify_installed_reactor
 from twisted.internet.defer import Deferred, inlineCallbacks
 
 from .page import PageCoroutine, NavigationPageCoroutine
@@ -38,6 +39,7 @@ PyppeteerHandler = TypeVar("PyppeteerHandler", bound="ScrapyPyppeteerDownloadHan
 class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     def __init__(self, crawler: Crawler) -> None:
         super().__init__(settings=crawler.settings, crawler=crawler)
+        verify_installed_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
         self.launch_options: dict = crawler.settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
         self.navigation_timeout: Optional[int] = None
         if crawler.settings.get("PYPPETEER_NAVIGATION_TIMEOUT"):
