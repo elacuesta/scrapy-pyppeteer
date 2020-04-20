@@ -75,14 +75,9 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             if isinstance(pc, PageCoroutine):
                 method = getattr(page, pc.method)
                 if isinstance(pc, NavigationPageCoroutine):
-                    navigation = asyncio.ensure_future(page.waitForNavigation())
-                    await asyncio.gather(navigation, method(*pc.args, **pc.kwargs))
-                    result = navigation.result()
+                    await asyncio.gather(page.waitForNavigation(), method(*pc.args, **pc.kwargs))
                 else:
-                    result = await method(*pc.args, **pc.kwargs)
-
-            if isinstance(result, pyppeteer.network_manager.Response):
-                response = result
+                    await method(*pc.args, **pc.kwargs)
 
         body = (await page.content()).encode("utf8")
 
