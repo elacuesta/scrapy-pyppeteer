@@ -23,7 +23,7 @@ def _force_deferred(coro: Coroutine) -> Deferred:
 async def _set_request_headers(
     request: pyppeteer.network_manager.Request, scrapy_request: Request
 ) -> None:
-    if request.isNavigationRequest():
+    if request.url == scrapy_request.url:
         headers = {
             key.decode("utf-8"): value[0].decode("utf-8")
             for key, value in scrapy_request.headers.items()
