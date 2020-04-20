@@ -1,4 +1,6 @@
 # Pyppeteer integration for Scrapy
+[![version](https://img.shields.io/pypi/v/scrapy-pyppeteer.svg)](https://pypi.python.org/pypi/scrapy-pyppeteer)
+[![pyversions](https://img.shields.io/pypi/pyversions/scrapy-pyppeteer.svg)](https://pypi.python.org/pypi/scrapy-pyppeteer)
 [![actions](https://github.com/elacuesta/scrapy-pyppeteer/workflows/Build/badge.svg)](https://github.com/elacuesta/scrapy-pyppeteer/actions)
 [![codecov](https://codecov.io/gh/elacuesta/scrapy-pyppeteer/branch/master/graph/badge.svg)](https://codecov.io/gh/elacuesta/scrapy-pyppeteer)
 
@@ -26,9 +28,8 @@ to integrate `asyncio`-based projects such as `Pyppeteer`.
 
 ## Installation
 
-This package is not (yet) available on PyPI, but it can be installed from GitHub:
 ```
-$ pip install https://github.com/elacuesta/scrapy-pyppeteer
+$ pip install scrapy-pyppeteer
 ```
 
 ## Configuration

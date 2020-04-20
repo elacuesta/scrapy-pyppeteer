@@ -1,4 +1,4 @@
-.PHONY: lint types
+.PHONY: lint types black
 
 lint:
 	@python -m flake8 --exclude=.git,venv* scrapy_pyppeteer/*.py tests/*.py

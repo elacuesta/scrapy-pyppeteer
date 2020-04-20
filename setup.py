@@ -1,11 +1,17 @@
 import setuptools
 
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+
 setuptools.setup(
     name="scrapy-pyppeteer",
     version="0.0.1",
     license="BSD",
     description="Pyppeteer integration for Scrapy",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="Eugenio Lacuesta",
     author_email="eugenio.lacuesta@gmail.com",
     url="https://github.com/elacuesta/scrapy-pyppeteer",

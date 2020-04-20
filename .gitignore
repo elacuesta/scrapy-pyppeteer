@@ -7,3 +7,6 @@
 .coverage
 htmlcov/
 coverage.xml
+build/
+dist/
+examples/
