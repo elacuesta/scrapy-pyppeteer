@@ -23,13 +23,18 @@ def _force_deferred(coro: Coroutine) -> Deferred:
 async def _request_handler(
     request: pyppeteer.network_manager.Request, scrapy_request: Request, stats: StatsCollector
 ) -> None:
-    # set headers
+    # set headers, method and body
     if request.url == scrapy_request.url:
-        headers = {
-            key.decode("utf-8"): value[0].decode("utf-8")
-            for key, value in scrapy_request.headers.items()
+        overrides = {
+            "method": scrapy_request.method,
+            "headers": {
+                key.decode("utf-8"): value[0].decode("utf-8")
+                for key, value in scrapy_request.headers.items()
+            },
         }
-        await request.continue_(overrides={"headers": headers})
+        if scrapy_request.body:
+            overrides["postData"] = scrapy_request.body.decode(scrapy_request.encoding)
+        await request.continue_(overrides)
     else:
         await request.continue_()
     # increment stats
