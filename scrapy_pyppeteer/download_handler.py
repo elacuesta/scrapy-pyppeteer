@@ -3,12 +3,12 @@ from functools import partial
 from typing import Coroutine, Optional, Type, TypeVar
 
 import pyppeteer
-from scrapy import signals
-from scrapy import Spider
+from scrapy import Spider, signals
 from scrapy.core.downloader.handlers.http import HTTPDownloadHandler
 from scrapy.crawler import Crawler
 from scrapy.http import Request, Response
 from scrapy.responsetypes import responsetypes
+from scrapy.statscollectors import StatsCollector
 from scrapy.utils.reactor import verify_installed_reactor
 from twisted.internet.defer import Deferred, inlineCallbacks
 
@@ -20,9 +20,10 @@ def _force_deferred(coro: Coroutine) -> Deferred:
     return Deferred.fromFuture(future)
 
 
-async def _set_request_headers(
-    request: pyppeteer.network_manager.Request, scrapy_request: Request
+async def _request_handler(
+    request: pyppeteer.network_manager.Request, scrapy_request: Request, stats: StatsCollector
 ) -> None:
+    # set headers
     if request.url == scrapy_request.url:
         headers = {
             key.decode("utf-8"): value[0].decode("utf-8")
@@ -31,6 +32,15 @@ async def _set_request_headers(
         await request.continue_(overrides={"headers": headers})
     else:
         await request.continue_()
+    # increment stats
+    stats.inc_value("pyppeteer/request_method_count/{}".format(request.method))
+    stats.inc_value("pyppeteer/request_count")
+    if request.isNavigationRequest():
+        stats.inc_value("pyppeteer/request_count/navigation")
+
+
+async def _response_handler(response: pyppeteer.network_manager.Response, stats: StatsCollector):
+    stats.inc_value("pyppeteer/response_status_count/{}".format(response.status))
 
 
 PyppeteerHandler = TypeVar("PyppeteerHandler", bound="ScrapyPyppeteerDownloadHandler")
@@ -39,6 +49,7 @@ PyppeteerHandler = TypeVar("PyppeteerHandler", bound="ScrapyPyppeteerDownloadHan
 class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     def __init__(self, crawler: Crawler) -> None:
         super().__init__(settings=crawler.settings, crawler=crawler)
+        self.stats = crawler.stats
         verify_installed_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
         self.launch_options: dict = crawler.settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
         self.navigation_timeout: Optional[int] = None
@@ -64,10 +75,12 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
 
     async def _download_request(self, request: Request, spider: Spider) -> Response:
         page = await self.browser.newPage()  # type: ignore
+        self.stats.inc_value("pyppeteer/page_count")
         if self.navigation_timeout is not None:
             page.setDefaultNavigationTimeout(self.navigation_timeout)
         await page.setRequestInterception(True)
-        page.on("request", partial(_set_request_headers, scrapy_request=request))
+        page.on("request", partial(_request_handler, scrapy_request=request, stats=self.stats))
+        page.on("response", partial(_response_handler, stats=self.stats))
         response = await page.goto(request.url)
 
         page_coroutines = request.meta.get("pyppeteer_page_coroutines") or ()
@@ -86,9 +99,11 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         for key, value in annotations.items():
             if value is pyppeteer.page.Page:
                 request.cb_kwargs[key] = page
+                self.stats.inc_value("pyppeteer/page_count/injected_callback")
                 break
         else:
             await page.close()
+            self.stats.inc_value("pyppeteer/page_count/closed")
 
         response.headers.pop("content-encoding", None)
         respcls = responsetypes.from_args(headers=response.headers, url=response.url, body=body)
