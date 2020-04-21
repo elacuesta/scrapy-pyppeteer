@@ -36,12 +36,12 @@ jobs:
 
     - name: Publish to PyPI
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
-        run: |
-          pip install --upgrade setuptools wheel twine
-          python setup.py sdist bdist_wheel
-          export TWINE_USERNAME=__token__
-          export TWINE_PASSWORD=${{ secrets.PYPI_TOKEN }}
-          twine upload dist/*
+      run: |
+        pip install --upgrade setuptools wheel twine
+        python setup.py sdist bdist_wheel
+        export TWINE_USERNAME=__token__
+        export TWINE_PASSWORD=${{ secrets.PYPI_TOKEN }}
+        twine upload dist/*
 
   tests:
     runs-on: ${{ matrix.os }}
