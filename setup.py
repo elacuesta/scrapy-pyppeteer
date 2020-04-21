@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="scrapy-pyppeteer",
-    version="0.0.3",
+    version="0.0.4",
     license="BSD",
     description="Pyppeteer integration for Scrapy",
     long_description=long_description,
@@ -17,7 +17,7 @@ setuptools.setup(
     url="https://github.com/elacuesta/scrapy-pyppeteer",
     packages=["scrapy_pyppeteer"],
     classifiers=[
-        "Development Status :: 1 - Planning",
+        "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.6",
