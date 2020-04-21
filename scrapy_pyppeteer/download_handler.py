@@ -40,6 +40,7 @@ async def _request_handler(
 
 
 async def _response_handler(response: pyppeteer.network_manager.Response, stats: StatsCollector):
+    stats.inc_value("pyppeteer/response_count")
     stats.inc_value("pyppeteer/response_status_count/{}".format(response.status))
 
 
