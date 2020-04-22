@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from functools import partial
+from pathlib import Path
 from typing import Coroutine, Optional, Type, TypeVar
 
 import pyppeteer
@@ -67,6 +68,11 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             self.navigation_timeout = crawler.settings.getint("PYPPETEER_NAVIGATION_TIMEOUT")
         self.browser: Optional[pyppeteer.browser.Browser] = None
         self.launch_options: dict = crawler.settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
+        if (
+            "executablePath" not in self.launch_options
+            and Path(pyppeteer.executablePath()).is_file()
+        ):
+            self.launch_options["executablePath"] = pyppeteer.executablePath()
         logger.info("Browser launch options: %s" % self.launch_options)
 
     @classmethod
