@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from functools import partial
 from typing import Coroutine, Optional, Type, TypeVar
 
@@ -13,6 +14,9 @@ from scrapy.utils.reactor import verify_installed_reactor
 from twisted.internet.defer import Deferred, inlineCallbacks
 
 from .page import PageCoroutine, NavigationPageCoroutine
+
+
+logger = logging.getLogger("scrapy-pyppeteer")
 
 
 def _force_deferred(coro: Coroutine) -> Deferred:
@@ -55,14 +59,15 @@ PyppeteerHandler = TypeVar("PyppeteerHandler", bound="ScrapyPyppeteerDownloadHan
 class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     def __init__(self, crawler: Crawler) -> None:
         super().__init__(settings=crawler.settings, crawler=crawler)
-        self.stats = crawler.stats
         verify_installed_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
-        self.launch_options: dict = crawler.settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
+        crawler.signals.connect(self._launch_browser_signal_handler, signals.engine_started)
+        self.stats = crawler.stats
         self.navigation_timeout: Optional[int] = None
         if crawler.settings.get("PYPPETEER_NAVIGATION_TIMEOUT"):
             self.navigation_timeout = crawler.settings.getint("PYPPETEER_NAVIGATION_TIMEOUT")
         self.browser: Optional[pyppeteer.browser.Browser] = None
-        crawler.signals.connect(self._launch_browser_signal_handler, signals.engine_started)
+        self.launch_options: dict = crawler.settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
+        logger.info("Browser launch options: %s" % self.launch_options)
 
     @classmethod
     def from_crawler(cls: Type[PyppeteerHandler], crawler: Crawler) -> PyppeteerHandler:
