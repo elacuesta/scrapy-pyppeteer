@@ -9,6 +9,7 @@ from scrapy import Spider, signals
 from scrapy.core.downloader.handlers.http import HTTPDownloadHandler
 from scrapy.crawler import Crawler
 from scrapy.http import Request, Response
+from scrapy.http.headers import Headers
 from scrapy.responsetypes import responsetypes
 from scrapy.statscollectors import StatsCollector
 from scrapy.utils.reactor import verify_installed_reactor
@@ -122,12 +123,13 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             await page.close()
             self.stats.inc_value("pyppeteer/page_count/closed")
 
-        response.headers.pop("content-encoding", None)
-        respcls = responsetypes.from_args(headers=response.headers, url=response.url, body=body)
+        headers = Headers(response.headers)
+        headers.pop("Content-Encoding", None)
+        respcls = responsetypes.from_args(headers=headers, url=page.url, body=body)
         return respcls(
             url=page.url,
             status=response.status,
-            headers=response.headers,
+            headers=headers,
             body=body,
             request=request,
             flags=["pyppeteer"],

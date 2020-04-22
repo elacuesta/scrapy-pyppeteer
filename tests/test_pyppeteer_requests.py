@@ -3,8 +3,8 @@ from tempfile import NamedTemporaryFile
 
 import pyppeteer
 import pytest
-from scrapy import Spider
-from scrapy.http import Request, Response
+from scrapy import Spider, Request
+from scrapy.http.response.html import HtmlResponse
 from scrapy.utils.test import get_crawler
 
 from scrapy_pyppeteer.download_handler import ScrapyPyppeteerDownloadHandler
@@ -22,7 +22,7 @@ async def test_basic_response():
         req = Request(server.urljoin("/index.html"), meta={"pyppeteer": True})
         resp = await handler._download_request(req, Spider("foo"))
 
-    assert isinstance(resp, Response)
+    assert isinstance(resp, HtmlResponse)
     assert resp.request is req
     assert resp.url == req.url
     assert resp.status == 200
@@ -47,7 +47,7 @@ async def test_page_coroutine_navigation():
         )
         resp = await handler._download_request(req, Spider("foo"))
 
-    assert isinstance(resp, Response)
+    assert isinstance(resp, HtmlResponse)
     assert resp.request is req
     assert resp.url == server.urljoin("/lorem_ipsum.html")
     assert resp.status == 200
@@ -80,7 +80,7 @@ async def test_page_coroutine_infinite_scroll():
         )
         resp = await handler._download_request(req, Spider("foo"))
 
-    assert isinstance(resp, Response)
+    assert isinstance(resp, HtmlResponse)
     assert resp.request is req
     assert resp.url == server.urljoin("/scroll.html")
     assert resp.status == 200
