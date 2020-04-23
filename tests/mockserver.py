@@ -38,6 +38,7 @@ class PostMockServer:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.httpd.shutdown()
+        self.thread.join()
 
     def urljoin(self, url):
         return urljoin("http://{}:{}".format(self.address, self.port), url)
