@@ -3,14 +3,14 @@ from tempfile import NamedTemporaryFile
 
 import pyppeteer
 import pytest
-from scrapy import Spider, Request
+from scrapy import Spider, Request, FormRequest
 from scrapy.http.response.html import HtmlResponse
 from scrapy.utils.test import get_crawler
 
 from scrapy_pyppeteer.download_handler import ScrapyPyppeteerDownloadHandler
 from scrapy_pyppeteer.page import PageCoroutine, NavigationPageCoroutine
 
-from tests.mockserver import MockServer
+from tests.mockserver import PostMockServer, StaticMockServer
 
 
 @pytest.mark.asyncio
@@ -18,7 +18,7 @@ async def test_basic_response():
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
     await handler._launch_browser()
 
-    with MockServer() as server:
+    with StaticMockServer() as server:
         req = Request(server.urljoin("/index.html"), meta={"pyppeteer": True})
         resp = await handler._download_request(req, Spider("foo"))
 
@@ -33,11 +33,29 @@ async def test_basic_response():
 
 
 @pytest.mark.asyncio
+async def test_post_request():
+    handler = ScrapyPyppeteerDownloadHandler(get_crawler())
+    await handler._launch_browser()
+
+    with PostMockServer() as server:
+        req = FormRequest(server.urljoin("/"), meta={"pyppeteer": True}, formdata={"foo": "bar"})
+        resp = await handler._download_request(req, Spider("foo"))
+
+    assert resp.request is req
+    assert resp.url == req.url
+    assert resp.status == 200
+    assert "pyppeteer" in resp.flags
+    assert "Request body: foo=bar" in resp.text
+
+    await handler.browser.close()
+
+
+@pytest.mark.asyncio
 async def test_page_coroutine_navigation():
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
     await handler._launch_browser()
 
-    with MockServer() as server:
+    with StaticMockServer() as server:
         req = Request(
             url=server.urljoin("/index.html"),
             meta={
@@ -64,7 +82,7 @@ async def test_page_coroutine_infinite_scroll():
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
     await handler._launch_browser()
 
-    with MockServer() as server:
+    with StaticMockServer() as server:
         req = Request(
             url=server.urljoin("/scroll.html"),
             meta={
@@ -104,7 +122,7 @@ async def test_page_coroutine_screenshot_pdf():
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
     await handler._launch_browser()
 
-    with MockServer() as server:
+    with StaticMockServer() as server:
         req = Request(
             url=server.urljoin("/index.html"),
             meta={
@@ -130,7 +148,7 @@ async def test_page_coroutine_timeout():
     handler = ScrapyPyppeteerDownloadHandler(crawler)
     await handler._launch_browser()
 
-    with MockServer() as server:
+    with StaticMockServer() as server:
         req = Request(
             url=server.urljoin("/index.html"),
             meta={
@@ -152,7 +170,7 @@ async def test_page_to_callback():
     async def callback(self, response, page: pyppeteer.page.Page):
         pass
 
-    with MockServer() as server:
+    with StaticMockServer() as server:
         req = Request(server.urljoin("/index.html"), callback, meta={"pyppeteer": True})
         resp = await handler._download_request(req, Spider("foo"))
 

@@ -1,11 +1,13 @@
 import re
 import sys
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from subprocess import Popen, PIPE
+from threading import Thread
 from urllib.parse import urljoin
 
 
-class MockServer:
+class StaticMockServer:
     def __enter__(self):
         self.proc = Popen(
             [sys.executable, "-u", "-m", "http.server", "0", "--bind", "127.0.0.1"],
@@ -24,3 +26,28 @@ class MockServer:
 
     def urljoin(self, url):
         return urljoin("http://{}:{}".format(self.address, self.port), url)
+
+
+class PostMockServer:
+    def __enter__(self):
+        self.httpd = HTTPServer(("127.0.0.1", 0), PostRequestHandler)
+        self.address, self.port = self.httpd.server_address
+        self.thread = Thread(target=self.httpd.serve_forever)
+        self.thread.start()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.httpd.shutdown()
+
+    def urljoin(self, url):
+        return urljoin("http://{}:{}".format(self.address, self.port), url)
+
+
+class PostRequestHandler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        content_length = int(self.headers["Content-Length"])
+        body = self.rfile.read(content_length)
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Request body: ")
+        self.wfile.write(body)

@@ -5,13 +5,13 @@ from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
 from scrapy_pyppeteer.download_handler import ScrapyPyppeteerDownloadHandler
-from tests.mockserver import MockServer
+from tests.mockserver import StaticMockServer
 
 
 class MixedRequestsTestCase(TestCase):
     @defer.inlineCallbacks
     def setUp(self):
-        self.server = MockServer()
+        self.server = StaticMockServer()
         self.server.__enter__()
         self.handler = ScrapyPyppeteerDownloadHandler.from_crawler(get_crawler())
         yield self.handler._launch_browser_signal_handler()
