@@ -10,4 +10,5 @@ black:
 	@black --check scrapy_pyppeteer tests
 
 clean:
+	@find . -name "*.pyc" -delete
 	@rm -rf .mypy_cache/ .tox/ build/ dist/ htmlcov/ .coverage coverage.xml

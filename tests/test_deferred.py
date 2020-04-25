@@ -1,7 +1,7 @@
 import asyncio
 from twisted.trial.unittest import TestCase
 
-from scrapy_pyppeteer.download_handler import _force_deferred
+from scrapy_pyppeteer.handler import _force_deferred
 
 
 class ForceDeferredTestCase(TestCase):

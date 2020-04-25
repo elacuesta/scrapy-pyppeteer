@@ -7,7 +7,7 @@ from scrapy import Spider, Request, FormRequest
 from scrapy.http.response.html import HtmlResponse
 from scrapy.utils.test import get_crawler
 
-from scrapy_pyppeteer.download_handler import ScrapyPyppeteerDownloadHandler
+from scrapy_pyppeteer.handler import ScrapyPyppeteerDownloadHandler
 from scrapy_pyppeteer.page import PageCoroutine, NavigationPageCoroutine
 
 from tests.mockserver import PostMockServer, StaticMockServer

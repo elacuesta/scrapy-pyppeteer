@@ -4,7 +4,7 @@ from scrapy.utils.test import get_crawler
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
-from scrapy_pyppeteer.download_handler import ScrapyPyppeteerDownloadHandler
+from scrapy_pyppeteer.handler import ScrapyPyppeteerDownloadHandler
 from tests.mockserver import StaticMockServer
 
 

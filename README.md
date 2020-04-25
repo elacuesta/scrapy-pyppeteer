@@ -39,8 +39,8 @@ Replace the default `http` and `https` Download Handlers through
 
 ```python
 DOWNLOAD_HANDLERS = {
-    "http": "scrapy_pyppeteer.ScrapyPyppeteerDownloadHandler",
-    "https": "scrapy_pyppeteer.ScrapyPyppeteerDownloadHandler",
+    "http": "scrapy_pyppeteer.handler.ScrapyPyppeteerDownloadHandler",
+    "https": "scrapy_pyppeteer.handler.ScrapyPyppeteerDownloadHandler",
 }
 ```
 
