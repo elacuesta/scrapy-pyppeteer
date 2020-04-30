@@ -15,7 +15,12 @@ from scrapy.statscollectors import StatsCollector
 from scrapy.utils.reactor import verify_installed_reactor
 from twisted.internet.defer import Deferred, inlineCallbacks
 
+from ._monkeypatches import _patch_pyppeteer_connection
 from .page import PageCoroutine, NavigationPageCoroutine
+
+
+_patch_pyppeteer_connection()
+del _patch_pyppeteer_connection
 
 
 logger = logging.getLogger("scrapy-pyppeteer")
