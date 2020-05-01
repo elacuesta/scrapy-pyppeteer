@@ -128,7 +128,8 @@ class AwesomeSpiderWithPage(scrapy.Spider):
 
 ## Page coroutines
 
-A sorted iterable could be passed in the `pyppeteer_page_coroutines`
+A sorted iterable (`list`, `tuple` or `dict`, for instance) could be passed
+in the `pyppeteer_page_coroutines`
 [Request.meta](https://docs.scrapy.org/en/latest/topics/request-response.html#scrapy.http.Request.meta)
 key to request coroutines to be awaited on the `Page` before returning the final
 `Response` to the callback.

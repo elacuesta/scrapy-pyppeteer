@@ -107,6 +107,8 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         response = await page.goto(request.url)
 
         page_coroutines = request.meta.get("pyppeteer_page_coroutines") or ()
+        if isinstance(page_coroutines, dict):
+            page_coroutines = page_coroutines.values()
         for pc in page_coroutines:
             if isinstance(pc, PageCoroutine):
                 method = getattr(page, pc.method)
