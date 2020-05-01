@@ -117,8 +117,8 @@ async def test_page_coroutine_screenshot_pdf():
             universal_newlines=True,
         ).stdout.strip()
 
-    image_file = NamedTemporaryFile()
-    pdf_file = NamedTemporaryFile()
+    png_file = NamedTemporaryFile(mode="w+b")
+    pdf_file = NamedTemporaryFile(mode="w+b")
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
     await handler._launch_browser()
 
@@ -127,16 +127,25 @@ async def test_page_coroutine_screenshot_pdf():
             url=server.urljoin("/index.html"),
             meta={
                 "pyppeteer": True,
-                "pyppeteer_page_coroutines": [
-                    PageCoroutine("screenshot", options={"path": image_file.name, "type": "png"}),
-                    PageCoroutine("pdf", options={"path": pdf_file.name}),
-                ],
+                "pyppeteer_page_coroutines": {
+                    "png": PageCoroutine(
+                        "screenshot", options={"path": png_file.name, "type": "png"}
+                    ),
+                    "pdf": PageCoroutine("pdf", options={"path": pdf_file.name}),
+                },
             },
         )
         await handler._download_request(req, Spider("foo"))
-        assert get_mimetype(image_file) == "image/png"
+
+        assert get_mimetype(png_file) == "image/png"
         assert get_mimetype(pdf_file) == "application/pdf"
-        image_file.close()
+
+        png_file.file.seek(0)
+        assert png_file.file.read() == req.meta["pyppeteer_page_coroutines"]["png"].result
+        pdf_file.file.seek(0)
+        assert pdf_file.file.read() == req.meta["pyppeteer_page_coroutines"]["pdf"].result
+
+        png_file.close()
         pdf_file.close()
 
     await handler.browser.close()
