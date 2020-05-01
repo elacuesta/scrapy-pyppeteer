@@ -116,6 +116,8 @@ Response, containing the final result.
     `method` should be the name of the coroutine, `*args` and `**kwargs`
     are passed to the function call._
 
+    _The coroutine result will be stored in the `PageCoroutine.result` attribute_
+
     For instance,
     ```python
     PageCoroutine("screenshot", options={"path": "quotes.png", "fullPage": True})
@@ -190,18 +192,21 @@ class ClickAndSavePdfSpider(scrapy.Spider):
     name = "pdf"
 
     def start_requests(self):
-        yield Request(
+        yield scrapy.Request(
             url="https://example.org",
             meta=dict(
                 pyppeteer=True,
-                pyppeteer_page_coroutines=[
-                    NavigationPageCoroutine("click", selector="a"),
-                    PageCoroutine("pdf", options={"path": "iana.pdf"}),
-                ],
+                pyppeteer_page_coroutines={
+                    "click": NavigationPageCoroutine("click", selector="a"),
+                    "pdf": PageCoroutine("pdf", options={"path": "/tmp/file.pdf"}),
+                },
             ),
         )
 
     def parse(self, response):
+        pdf_bytes = response.meta["pyppeteer_page_coroutines"]["pdf"].result
+        with open("iana.pdf", "wb") as fp:
+            fp.write(pdf_bytes)
         yield {"url": response.url}  # response.url is "https://www.iana.org/domains/reserved"
 ```
 
@@ -212,7 +217,7 @@ class ScrollSpider(scrapy.Spider):
     name = "scroll"
 
     def start_requests(self):
-        yield Request(
+        yield scrapy.Request(
             url="http://quotes.toscrape.com/scroll",
             meta=dict(
                 pyppeteer=True,
