@@ -80,10 +80,18 @@ class AwesomeSpider(scrapy.Spider):
     name = "awesome"
 
     def start_requests(self):
-        yield scrapy.Request("https://example.org", meta={"pyppeteer": True})
+        # GET request
+        yield scrapy.Request("https://httpbin.org/get", meta={"pyppeteer": True})
+        # POST request
+        yield scrapy.FormRequest(
+            url="https://httpbin.org/post",
+            formdata={"foo": "bar"},
+            meta={"pyppeteer": True},
+        )
 
     def parse(self, response):
-        return response.follow_all(css="a", meta={"pyppeteer": True})
+        # 'response' contains the page as seen by the browser
+        yield {"url": response.url}
 ```
 
 ### Receiving the Page object in the callback
