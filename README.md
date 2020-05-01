@@ -94,37 +94,6 @@ class AwesomeSpider(scrapy.Spider):
         yield {"url": response.url}
 ```
 
-### Receiving the Page object in the callback
-
-Specifying `pyppeteer.page.Page` as the type for a callback argument will result
-in the corresponding `Page` object being injected in the callback. In order to
-able to `await` coroutines on the provided `Page` object, the callback needs to
-be defined as a coroutine function (`async def`).
-
-```python
-import scrapy
-import pyppeteer
-
-class AwesomeSpiderWithPage(scrapy.Spider):
-    name = "page"
-
-    def start_requests(self):
-        yield scrapy.Request("https://example.org", meta={"pyppeteer": True})
-
-    async def parse(self, response, page: pyppeteer.page.Page):
-        title = await page.title()  # "Example Domain"
-        yield {"title": title}
-        await page.close()
-```
-
-**Notes:**
-
-* In order to avoid memory issues, it is recommended to manually close the page
-  by awaiting the `Page.close` coroutine.
-* Any network operations resulting from awaiting a coroutine on a `Page` object
-  (`goto`, `goBack`, etc) will be executed directly by Pyppeteer, bypassing the
-  Scrapy request workflow (Scheduler, Middlewares, etc).
-
 
 ## Page coroutines
 
@@ -178,6 +147,38 @@ Response, containing the final result.
         page.click(selector="a"),
     )
     ```
+
+
+### Receiving the Page object in the callback
+
+Specifying `pyppeteer.page.Page` as the type for a callback argument will result
+in the corresponding `Page` object being injected in the callback. In order to
+able to `await` coroutines on the provided `Page` object, the callback needs to
+be defined as a coroutine function (`async def`).
+
+```python
+import scrapy
+import pyppeteer
+
+class AwesomeSpiderWithPage(scrapy.Spider):
+    name = "page"
+
+    def start_requests(self):
+        yield scrapy.Request("https://example.org", meta={"pyppeteer": True})
+
+    async def parse(self, response, page: pyppeteer.page.Page):
+        title = await page.title()  # "Example Domain"
+        yield {"title": title}
+        await page.close()
+```
+
+**Notes:**
+
+* In order to avoid memory issues, it is recommended to manually close the page
+  by awaiting the `Page.close` coroutine.
+* Any network operations resulting from awaiting a coroutine on a `Page` object
+  (`goto`, `goBack`, etc) will be executed directly by Pyppeteer, bypassing the
+  Scrapy request workflow (Scheduler, Middlewares, etc).
 
 
 ## Examples
