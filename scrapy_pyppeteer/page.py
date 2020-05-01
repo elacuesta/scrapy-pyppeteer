@@ -8,6 +8,12 @@ class PageCoroutine:
         self.method = method
         self.args = args
         self.kwargs = kwargs
+        self.result = None
+
+    def __str__(self):
+        return "<%s for method '%s'>" % (self.__class__.__name__, self.method)
+
+    __repr__ = __str__
 
 
 class NavigationPageCoroutine(PageCoroutine):

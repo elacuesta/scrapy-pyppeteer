@@ -113,7 +113,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
                 if isinstance(pc, NavigationPageCoroutine):
                     await asyncio.gather(page.waitForNavigation(), method(*pc.args, **pc.kwargs))
                 else:
-                    await method(*pc.args, **pc.kwargs)
+                    pc.result = await method(*pc.args, **pc.kwargs)
 
         body = (await page.content()).encode("utf8")
 
