@@ -2,6 +2,7 @@ import asyncio
 import logging
 from functools import partial
 from pathlib import Path
+from time import time
 from typing import Coroutine, Optional, Type, TypeVar
 
 import pyppeteer
@@ -104,6 +105,8 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         await page.setRequestInterception(True)
         page.on("request", partial(_request_handler, scrapy_request=request, stats=self.stats))
         page.on("response", partial(_response_handler, stats=self.stats))
+
+        start_time = time()
         response = await page.goto(request.url)
 
         page_coroutines = request.meta.get("pyppeteer_page_coroutines") or ()
@@ -118,6 +121,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
                     pc.result = await method(*pc.args, **pc.kwargs)
 
         body = (await page.content()).encode("utf8")
+        request.meta["download_latency"] = time() - start_time
 
         callback = request.callback or spider.parse
         annotations = getattr(callback, "__annotations__", {})
