@@ -95,6 +95,37 @@ class AwesomeSpider(scrapy.Spider):
 ```
 
 
+## Intercepting requests and responses
+
+Callbacks can be supplied to be notified of outgoing requests and incoming responses.
+For a given request, set the `pyppeteer_request_handler`/`pyppeteer_response_handler` meta keys.
+Please see [Pyppeteer docs](https://pyppeteer.github.io/pyppeteer/reference.html#pyppeteer.page.Page.setRequestInterception)
+for additional information.
+
+For instance, the following snippet will intercept and print URLs for all requested and
+obtained resources, including CSS files and images.
+
+```python
+class InterceptSpider(scrapy.Spider):
+
+    def parse(self, response: scrapy.http.response.Response):
+        yield scrapy.Request(
+            url="http://quotes.toscrape.com",
+            meta={
+                "pyppeteer": True,
+                "pyppeteer_request_handler": self.request_handler,
+                "pyppeteer_response_handler": self.response_handler,
+            },
+        )
+
+    def request_handler(self, request: pyppeteer.network_manager.Request):
+        print("Requesting", request.url)
+
+    def response_handler(self, response: pyppeteer.network_manager.Response):
+        print("Got a response from", response.url)
+```
+
+
 ## Page coroutines
 
 A sorted iterable (`list`, `tuple` or `dict`, for instance) could be passed
