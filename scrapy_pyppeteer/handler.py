@@ -9,15 +9,15 @@ import pyppeteer
 from scrapy import Spider, signals
 from scrapy.core.downloader.handlers.http import HTTPDownloadHandler
 from scrapy.crawler import Crawler
-from scrapy.http import Request, Response
+from scrapy.http import Request as ScrapyRequest, Response as ScrapyResponse
 from scrapy.http.headers import Headers
 from scrapy.responsetypes import responsetypes
 from scrapy.statscollectors import StatsCollector
 from scrapy.utils.reactor import verify_installed_reactor
 from twisted.internet.defer import Deferred, inlineCallbacks
 
-from ._monkeypatches import _patch_pyppeteer_connection
-from .page import PageCoroutine, NavigationPageCoroutine
+from scrapy_pyppeteer._monkeypatches import _patch_pyppeteer_connection
+from scrapy_pyppeteer.page import PageCoroutine, NavigationPageCoroutine
 
 
 _patch_pyppeteer_connection()
@@ -33,7 +33,9 @@ def _force_deferred(coro: Coroutine) -> Deferred:
 
 
 async def _request_handler(
-    request: pyppeteer.network_manager.Request, scrapy_request: Request, stats: StatsCollector
+    request: pyppeteer.network_manager.Request,
+    scrapy_request: ScrapyRequest,
+    stats: StatsCollector,
 ) -> None:
     # set headers, method and body
     if request.url == scrapy_request.url:
@@ -92,12 +94,12 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     async def _launch_browser(self) -> None:
         self.browser = await pyppeteer.launch(options=self.launch_options)
 
-    def download_request(self, request: Request, spider: Spider) -> Deferred:
+    def download_request(self, request: ScrapyRequest, spider: Spider) -> Deferred:
         if request.meta.get("pyppeteer"):
             return _force_deferred(self._download_request(request, spider))
         return super().download_request(request, spider)
 
-    async def _download_request(self, request: Request, spider: Spider) -> Response:
+    async def _download_request(self, request: ScrapyRequest, spider: Spider) -> ScrapyResponse:
         page = await self.browser.newPage()  # type: ignore
         self.stats.inc_value("pyppeteer/page_count")
         if self.navigation_timeout is not None:
