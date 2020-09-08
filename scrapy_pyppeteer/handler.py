@@ -104,9 +104,14 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         self.stats.inc_value("pyppeteer/page_count")
         if self.navigation_timeout is not None:
             page.setDefaultNavigationTimeout(self.navigation_timeout)
+
         await page.setRequestInterception(True)
         page.on("request", partial(_request_handler, scrapy_request=request, stats=self.stats))
+        if callable(request.meta.get("pyppeteer_request_handler")):
+            page.on("request", request.meta.get("pyppeteer_request_handler"))
         page.on("response", partial(_response_handler, stats=self.stats))
+        if callable(request.meta.get("pyppeteer_response_handler")):
+            page.on("response", request.meta.get("pyppeteer_response_handler"))
 
         start_time = time()
         response = await page.goto(request.url)
