@@ -1,5 +1,7 @@
 import setuptools
 
+from scrapy_pyppeteer import __version__
+
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -7,7 +9,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="scrapy-pyppeteer",
-    version="0.0.10",
+    version=__version__,
     license="BSD",
     description="Pyppeteer integration for Scrapy",
     long_description=long_description,
