@@ -14,6 +14,7 @@ from scrapy.http import Request, Response
 from scrapy.http.headers import Headers
 from scrapy.responsetypes import responsetypes
 from scrapy.statscollectors import StatsCollector
+from scrapy.utils.defer import deferred_from_coro
 from scrapy.utils.reactor import verify_installed_reactor
 from twisted.internet.defer import Deferred, inlineCallbacks
 
@@ -26,11 +27,6 @@ del _patch_pyppeteer_connection
 
 
 logger = logging.getLogger("scrapy-pyppeteer")
-
-
-def _force_deferred(coro: Coroutine) -> Deferred:
-    future = asyncio.ensure_future(coro)
-    return Deferred.fromFuture(future)
 
 
 async def _request_handler(
@@ -93,14 +89,14 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         return cls(crawler)
 
     def _launch_browser_signal_handler(self) -> Deferred:
-        return _force_deferred(self._launch_browser())
+        return deferred_from_coro(self._launch_browser())
 
     async def _launch_browser(self) -> None:
         self.browser = await pyppeteer.launch(options=self.launch_options)
 
     def download_request(self, request: Request, spider: Spider) -> Deferred:
         if request.meta.get("pyppeteer"):
-            return _force_deferred(self._download_request(request, spider))
+            return deferred_from_coro(self._download_request(request, spider))
         return super().download_request(request, spider)
 
     async def _download_request(self, request: Request, spider: Spider) -> Response:
@@ -172,4 +168,4 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     def close(self) -> Deferred:
         yield super().close()
         if self.browser:
-            yield _force_deferred(self.browser.close())
+            yield deferred_from_coro(self.browser.close())
