@@ -14,7 +14,11 @@ def _patch_pyppeteer_connection():
             # the _ws argument is not yet connected,
             # it can be replaced by another with better defaults
             self._ws = websockets.client.connect(
-                self._url, loop=self._loop, max_size=None, ping_interval=None, ping_timeout=None,
+                self._url,
+                loop=self._loop,
+                max_size=None,
+                ping_interval=None,
+                ping_timeout=None,
             )
 
     pyppeteer.connection.Connection = PatchedConnection
