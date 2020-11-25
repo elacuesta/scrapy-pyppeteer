@@ -1,5 +1,6 @@
 import subprocess
 from tempfile import NamedTemporaryFile
+from time import time
 
 import pyppeteer
 import pytest
@@ -188,7 +189,10 @@ async def test_default_page_coroutine_timeout():
             },
         )
         with pytest.raises(pyppeteer.errors.TimeoutError):
+            start = time()
             await handler._download_request(req, Spider("foo"))
+        elapsed = time() - start
+        assert 1 < elapsed < 1.2
 
     await handler.browser.close()
 

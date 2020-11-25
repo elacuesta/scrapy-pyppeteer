@@ -108,8 +108,6 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             page = await self.browser.newPage()  # type: ignore
             result = await self._download_request_page(request, spider, page)
         except Exception:
-            # Fix memory issues
-            # Not close page When PageCoroutine timeout or exception
             if not page.isClosed():
                 await page.close()
             raise
@@ -136,7 +134,6 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             if isinstance(pc, PageCoroutine):
                 method = getattr(page, pc.method)
 
-                # set PageCoroutine timeout
                 if self.page_coroutine_timeout is not None and not pc.kwargs.get("timeout", None):
                     pc.kwargs["timeout"] = self.page_coroutine_timeout
 

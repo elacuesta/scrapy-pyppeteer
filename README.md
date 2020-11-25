@@ -63,9 +63,16 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 
 * `PYPPETEER_NAVIGATION_TIMEOUT` (type `Optional[int]`, default `None`)
 
-    The timeout used when requesting pages by Pyppeteer. If `None` or unset,
+    Default timeout (in milliseconds) to be used when requesting pages by Pyppeteer. If `None` or unset,
     the default value will be used (30000 ms at the time of writing this).
     See the docs for [pyppeteer.page.Page.setDefaultNavigationTimeout](https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.setDefaultNavigationTimeout)
+
+* `PYPPETEER_PAGE_COROUTINE_TIMEOUT` (type `Optional[Union[int, float]]`, default `None`)
+
+    Default timeout (in milliseconds) to be passed when using [`page coroutines`](#page-coroutines),
+    such as [`waitForSelector`](https://pyppeteer.github.io/pyppeteer/reference.html#pyppeteer.page.Page.waitForSelector)
+    or [`waitForXPath`](https://pyppeteer.github.io/pyppeteer/reference.html#pyppeteer.page.Page.waitForXPath).
+    If `None` or unset, the default value will be used (30000 ms at the time of writing this).
 
 
 ## Basic usage
