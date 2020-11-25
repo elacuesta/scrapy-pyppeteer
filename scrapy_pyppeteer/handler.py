@@ -3,7 +3,7 @@ import logging
 from functools import partial
 from pathlib import Path
 from time import time
-from typing import Coroutine, Optional, Type, TypeVar
+from typing import Optional, Type, TypeVar
 
 import pyppeteer
 from pyppeteer.page import Page
