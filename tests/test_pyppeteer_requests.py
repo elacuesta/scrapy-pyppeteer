@@ -172,6 +172,28 @@ async def test_page_coroutine_timeout():
 
 
 @pytest.mark.asyncio
+async def test_default_page_coroutine_timeout():
+    crawler = get_crawler(settings_dict={"PYPPETEER_PAGE_COROUTINE_TIMEOUT": 1000})
+    handler = ScrapyPyppeteerDownloadHandler(crawler)
+    await handler._launch_browser()
+
+    with StaticMockServer() as server:
+        req = Request(
+            url=server.urljoin("/index.html"),
+            meta={
+                "pyppeteer": True,
+                "pyppeteer_page_coroutines": [
+                    NavigationPageCoroutine("waitForXPath", '//*[@id="test"]/test')
+                ],
+            },
+        )
+        with pytest.raises(pyppeteer.errors.TimeoutError):
+            await handler._download_request(req, Spider("foo"))
+
+    await handler.browser.close()
+
+
+@pytest.mark.asyncio
 async def test_page_to_callback():
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
     await handler._launch_browser()

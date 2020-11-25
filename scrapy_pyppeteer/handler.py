@@ -6,6 +6,7 @@ from time import time
 from typing import Coroutine, Optional, Type, TypeVar
 
 import pyppeteer
+from pyppeteer.page import Page
 from scrapy import Spider, signals
 from scrapy.core.downloader.handlers.http import HTTPDownloadHandler
 from scrapy.crawler import Crawler
@@ -71,8 +72,13 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         crawler.signals.connect(self._launch_browser_signal_handler, signals.engine_started)
         self.stats = crawler.stats
         self.navigation_timeout: Optional[int] = None
+        self.page_coroutine_timeout: Optional[int] = None
         if crawler.settings.get("PYPPETEER_NAVIGATION_TIMEOUT"):
             self.navigation_timeout = crawler.settings.getint("PYPPETEER_NAVIGATION_TIMEOUT")
+        if crawler.settings.get("PYPPETEER_PAGE_COROUTINE_TIMEOUT"):
+            self.page_coroutine_timeout = crawler.settings.getint(
+                "PYPPETEER_PAGE_COROUTINE_TIMEOUT"
+            )
         self.browser: Optional[pyppeteer.browser.Browser] = None
         self.launch_options: dict = crawler.settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
         if (
@@ -98,7 +104,21 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         return super().download_request(request, spider)
 
     async def _download_request(self, request: Request, spider: Spider) -> Response:
-        page = await self.browser.newPage()  # type: ignore
+        try:
+            page = await self.browser.newPage()  # type: ignore
+            result = await self._download_request_page(request, spider, page)
+        except Exception:
+            # Fix memory issues
+            # Not close page When PageCoroutine timeout or exception
+            if not page.isClosed():
+                await page.close()
+            raise
+        else:
+            return result
+
+    async def _download_request_page(
+        self, request: Request, spider: Spider, page: Page
+    ) -> Response:
         self.stats.inc_value("pyppeteer/page_count")
         if self.navigation_timeout is not None:
             page.setDefaultNavigationTimeout(self.navigation_timeout)
@@ -115,6 +135,11 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         for pc in page_coroutines:
             if isinstance(pc, PageCoroutine):
                 method = getattr(page, pc.method)
+
+                # set PageCoroutine timeout
+                if self.page_coroutine_timeout is not None and not pc.kwargs.get("timeout", None):
+                    pc.kwargs["timeout"] = self.page_coroutine_timeout
+
                 if isinstance(pc, NavigationPageCoroutine):
                     await asyncio.gather(page.waitForNavigation(), method(*pc.args, **pc.kwargs))
                 else:
