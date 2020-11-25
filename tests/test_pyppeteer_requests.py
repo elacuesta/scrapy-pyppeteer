@@ -192,7 +192,7 @@ async def test_default_page_coroutine_timeout():
             start = time()
             await handler._download_request(req, Spider("foo"))
         elapsed = time() - start
-        assert 1 < elapsed < 1.5  # 500 ms of tolerance
+        assert 1 < elapsed < 2  # 1000 ms of tolerance
 
     await handler.browser.close()
 

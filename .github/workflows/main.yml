@@ -52,7 +52,7 @@ jobs:
       run: pip install tox
 
     - name: Mypy check
-      run: tox -e mypy
+      run: tox -e typing
 
   coverage:
     runs-on: ubuntu-18.04
