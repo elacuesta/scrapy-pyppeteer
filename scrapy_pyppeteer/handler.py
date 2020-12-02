@@ -26,6 +26,9 @@ _patch_pyppeteer_connection()
 del _patch_pyppeteer_connection
 
 
+__all__ = ["ScrapyPyppeteerDownloadHandler"]
+
+
 logger = logging.getLogger("scrapy-pyppeteer")
 
 
@@ -65,8 +68,11 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     def __init__(self, crawler: Crawler) -> None:
         super().__init__(settings=crawler.settings, crawler=crawler)
         verify_installed_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
-        crawler.signals.connect(self._launch_browser_signal_handler, signals.engine_started)
+        crawler.signals.connect(lambda: deferred_from_coro(self._launch()), signals.engine_started)
         self.stats = crawler.stats
+        self.browser: Optional[pyppeteer.browser.Browser] = None
+
+        # read settings
         self.navigation_timeout: Optional[int] = None
         self.page_coroutine_timeout: Optional[int] = None
         if crawler.settings.get("PYPPETEER_NAVIGATION_TIMEOUT"):
@@ -75,7 +81,6 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
             self.page_coroutine_timeout = crawler.settings.getint(
                 "PYPPETEER_PAGE_COROUTINE_TIMEOUT"
             )
-        self.browser: Optional[pyppeteer.browser.Browser] = None
         self.launch_options: dict = crawler.settings.getdict("PYPPETEER_LAUNCH_OPTIONS") or {}
         if (
             "executablePath" not in self.launch_options
@@ -88,10 +93,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     def from_crawler(cls: Type[PyppeteerHandler], crawler: Crawler) -> PyppeteerHandler:
         return cls(crawler)
 
-    def _launch_browser_signal_handler(self) -> Deferred:
-        return deferred_from_coro(self._launch_browser())
-
-    async def _launch_browser(self) -> None:
+    async def _launch(self) -> None:
         self.browser = await pyppeteer.launch(options=self.launch_options)
 
     def download_request(self, request: Request, spider: Spider) -> Deferred:
@@ -100,26 +102,30 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
         return super().download_request(request, spider)
 
     async def _download_request(self, request: Request, spider: Spider) -> Response:
+        page = await self._create_page_for_request(request)
         try:
-            page = await self.browser.newPage()  # type: ignore
-            result = await self._download_request_page(request, spider, page)
+            result = await self._download_request_with_page(request, spider, page)
         except Exception:
             if not page.isClosed():
                 await page.close()
+                self.stats.inc_value("pyppeteer/page_count/closed")
             raise
         else:
             return result
 
-    async def _download_request_page(
-        self, request: Request, spider: Spider, page: Page
-    ) -> Response:
+    async def _create_page_for_request(self, request: Request) -> Page:
+        page = await self.browser.newPage()  # type: ignore
         self.stats.inc_value("pyppeteer/page_count")
         if self.navigation_timeout is not None:
             page.setDefaultNavigationTimeout(self.navigation_timeout)
         await page.setRequestInterception(True)
         page.on("request", partial(_request_handler, scrapy_request=request, stats=self.stats))
         page.on("response", partial(_response_handler, stats=self.stats))
+        return page
 
+    async def _download_request_with_page(
+        self, request: Request, spider: Spider, page: Page
+    ) -> Response:
         start_time = time()
         response = await page.goto(request.url)
 
@@ -149,8 +155,9 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
                 self.stats.inc_value("pyppeteer/page_count/injected_callback")
                 break
         else:
-            await page.close()
-            self.stats.inc_value("pyppeteer/page_count/closed")
+            if not page.isClosed():
+                await page.close()
+                self.stats.inc_value("pyppeteer/page_count/closed")
 
         headers = Headers(response.headers)
         headers.pop("Content-Encoding", None)

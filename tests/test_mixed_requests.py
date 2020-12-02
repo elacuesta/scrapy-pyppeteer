@@ -1,5 +1,6 @@
 from scrapy import Spider
 from scrapy.http import Request, Response
+from scrapy.utils.defer import deferred_from_coro
 from scrapy.utils.test import get_crawler
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
@@ -14,7 +15,7 @@ class MixedRequestsTestCase(TestCase):
         self.server = StaticMockServer()
         self.server.__enter__()
         self.handler = ScrapyPyppeteerDownloadHandler.from_crawler(get_crawler())
-        yield self.handler._launch_browser_signal_handler()
+        yield deferred_from_coro(self.handler._launch())
 
     @defer.inlineCallbacks
     def tearDown(self):
