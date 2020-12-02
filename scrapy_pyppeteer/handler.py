@@ -68,7 +68,7 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     def __init__(self, crawler: Crawler) -> None:
         super().__init__(settings=crawler.settings, crawler=crawler)
         verify_installed_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
-        crawler.signals.connect(lambda: deferred_from_coro(self._launch()), signals.engine_started)
+        crawler.signals.connect(self._engine_started_handler, signals.engine_started)
         self.stats = crawler.stats
         self.browser: Optional[pyppeteer.browser.Browser] = None
 
@@ -93,7 +93,10 @@ class ScrapyPyppeteerDownloadHandler(HTTPDownloadHandler):
     def from_crawler(cls: Type[PyppeteerHandler], crawler: Crawler) -> PyppeteerHandler:
         return cls(crawler)
 
-    async def _launch(self) -> None:
+    def _engine_started_handler(self) -> Deferred:
+        return deferred_from_coro(self._launch_browser())
+
+    async def _launch_browser(self) -> None:
         self.browser = await pyppeteer.launch(options=self.launch_options)
 
     def download_request(self, request: Request, spider: Spider) -> Deferred:

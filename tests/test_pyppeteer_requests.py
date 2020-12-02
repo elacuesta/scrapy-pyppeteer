@@ -17,7 +17,7 @@ from tests.mockserver import PostMockServer, StaticMockServer
 @pytest.mark.asyncio
 async def test_basic_response():
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
-    await handler._launch()
+    await handler._launch_browser()
 
     with StaticMockServer() as server:
         req = Request(server.urljoin("/index.html"), meta={"pyppeteer": True})
@@ -36,7 +36,7 @@ async def test_basic_response():
 @pytest.mark.asyncio
 async def test_post_request():
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
-    await handler._launch()
+    await handler._launch_browser()
 
     with PostMockServer() as server:
         req = FormRequest(server.urljoin("/"), meta={"pyppeteer": True}, formdata={"foo": "bar"})
@@ -54,7 +54,7 @@ async def test_post_request():
 @pytest.mark.asyncio
 async def test_page_coroutine_navigation():
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
-    await handler._launch()
+    await handler._launch_browser()
 
     with StaticMockServer() as server:
         req = Request(
@@ -81,7 +81,7 @@ async def test_page_coroutine_navigation():
 @pytest.mark.asyncio
 async def test_page_coroutine_infinite_scroll():
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
-    await handler._launch()
+    await handler._launch_browser()
 
     with StaticMockServer() as server:
         req = Request(
@@ -121,7 +121,7 @@ async def test_page_coroutine_screenshot_pdf():
     png_file = NamedTemporaryFile(mode="w+b")
     pdf_file = NamedTemporaryFile(mode="w+b")
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
-    await handler._launch()
+    await handler._launch_browser()
 
     with StaticMockServer() as server:
         req = Request(
@@ -156,7 +156,7 @@ async def test_page_coroutine_screenshot_pdf():
 async def test_page_coroutine_timeout():
     crawler = get_crawler(settings_dict={"PYPPETEER_NAVIGATION_TIMEOUT": 1000})
     handler = ScrapyPyppeteerDownloadHandler(crawler)
-    await handler._launch()
+    await handler._launch_browser()
 
     with StaticMockServer() as server:
         req = Request(
@@ -176,7 +176,7 @@ async def test_page_coroutine_timeout():
 async def test_default_page_coroutine_timeout():
     crawler = get_crawler(settings_dict={"PYPPETEER_PAGE_COROUTINE_TIMEOUT": 1000})
     handler = ScrapyPyppeteerDownloadHandler(crawler)
-    await handler._launch()
+    await handler._launch_browser()
 
     with StaticMockServer() as server:
         req = Request(
@@ -200,7 +200,7 @@ async def test_default_page_coroutine_timeout():
 @pytest.mark.asyncio
 async def test_page_to_callback():
     handler = ScrapyPyppeteerDownloadHandler(get_crawler())
-    await handler._launch()
+    await handler._launch_browser()
 
     async def callback(self, response, page: pyppeteer.page.Page):
         pass
