@@ -96,11 +96,15 @@ async def test_page_coroutine_infinite_scroll():
                     PageCoroutine("waitForSelector", "div.quote:nth-child(21)"),  # 3rd request
                 ],
             },
+            headers={
+                "User-Agent": "Overriden User Agent",
+            },
         )
         resp = await handler._download_request(req, Spider("foo"))
 
     assert isinstance(resp, HtmlResponse)
     assert resp.request is req
+    assert resp.request.headers[b"User-Agent"] == b"Overriden User Agent"
     assert resp.url == server.urljoin("/scroll.html")
     assert resp.status == 200
     assert "pyppeteer" in resp.flags

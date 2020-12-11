@@ -40,15 +40,18 @@ async def _request_handler(
         overrides = {
             "method": scrapy_request.method,
             "headers": {
-                key.decode("utf-8"): value[0].decode("utf-8")
+                key.decode("utf-8").lower(): value[0].decode("utf-8")
                 for key, value in scrapy_request.headers.items()
             },
         }
         if scrapy_request.body:
             overrides["postData"] = scrapy_request.body.decode(scrapy_request.encoding)
-        await request.continue_(overrides)
     else:
-        await request.continue_()
+        overrides = {"headers": request.headers.copy()}
+        if scrapy_request.headers.get("user-agent"):
+            user_agent = scrapy_request.headers["user-agent"].decode("utf-8")
+            overrides["headers"]["user-agent"] = user_agent
+    await request.continue_(overrides)
     # increment stats
     stats.inc_value("pyppeteer/request_method_count/{}".format(request.method))
     stats.inc_value("pyppeteer/request_count")
