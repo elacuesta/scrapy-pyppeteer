@@ -196,7 +196,7 @@ class AwesomeSpiderWithPage(scrapy.Spider):
 
 ```python
 import scrapy
-from scrapy_pyppeteer import PageCoroutine, NavigationPageCoroutine
+from scrapy_pyppeteer.page import PageCoroutine, NavigationPageCoroutine
 
 class ClickAndSavePdfSpider(scrapy.Spider):
     name = "pdf"
@@ -224,7 +224,8 @@ class ClickAndSavePdfSpider(scrapy.Spider):
 
 ```python
 import scrapy
-from scrapy_pyppeteer import PageCoroutine
+import pyppeteer
+from scrapy_pyppeteer.page import PageCoroutine
 
 class ScrollSpider(scrapy.Spider):
     name = "scroll"
@@ -238,13 +239,13 @@ class ScrollSpider(scrapy.Spider):
                     PageCoroutine("waitForSelector", "div.quote"),
                     PageCoroutine("evaluate", "window.scrollBy(0, document.body.scrollHeight)"),
                     PageCoroutine("waitForSelector", "div.quote:nth-child(11)"),  # 10 per page
+                    PageCoroutine("screenshot", options={"path": "quotes.png", "fullPage": True}),
                 ],
             ),
         )
 
-    async def parse(self, response, page: pyppeteer.page.Page):
-        await page.screenshot(options={"path": "quotes.png", "fullPage": True})
-        yield {"quote_count": len(response.css("div.quote"))}  # 100 quotes
+    def parse(self, response):
+        return {"quote_count": len(response.css("div.quote"))}
 ```
 
 
