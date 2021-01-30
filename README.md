@@ -195,6 +195,9 @@ class AwesomeSpiderWithPage(scrapy.Spider):
 **Click on a link, save the resulting page as PDF**
 
 ```python
+import scrapy
+from scrapy_pyppeteer import PageCoroutine, NavigationPageCoroutine
+
 class ClickAndSavePdfSpider(scrapy.Spider):
     name = "pdf"
 
@@ -220,6 +223,9 @@ class ClickAndSavePdfSpider(scrapy.Spider):
 **Scroll down on an infinite scroll page, take a screenshot of the full page**
 
 ```python
+import scrapy
+from scrapy_pyppeteer import PageCoroutine
+
 class ScrollSpider(scrapy.Spider):
     name = "scroll"
 
@@ -230,7 +236,7 @@ class ScrollSpider(scrapy.Spider):
                 pyppeteer=True,
                 pyppeteer_page_coroutines=[
                     PageCoroutine("waitForSelector", "div.quote"),
-                    PageCoroutine("evaluate", "window.scrollBy(0, 2000)"),
+                    PageCoroutine("evaluate", "window.scrollBy(0, document.body.scrollHeight)"),
                     PageCoroutine("waitForSelector", "div.quote:nth-child(11)"),  # 10 per page
                 ],
             ),
